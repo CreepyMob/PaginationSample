@@ -22,7 +22,7 @@ class StateInvoker<T> {
     }
 }
 
-class StateStore<T>(var state: State<T> = EmptyState<T>())
+class StateStore<T>(var state: State<T> = InitialState<T>())
 
 class PaginationStateMachine<T>(/*private val stateInvoker: StateInvoker<T> = StateInvoker(),
                                 private val pageContentLoader: PageContentLoader<T> = PageContentLoader(),*/

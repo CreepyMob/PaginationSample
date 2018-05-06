@@ -15,15 +15,15 @@ import org.mockito.junit.MockitoJUnitRunner
  * Time: 3:11
  */
 @RunWith(MockitoJUnitRunner::class)
-class EmptyStateTest {
+class InitialStateTest {
 
-    private lateinit var target: EmptyState<Any>
+    private lateinit var target: InitialState<Any>
 
     @Mock private lateinit var loader: PageContentLoader<Any>
 
     @Before
     fun setUp() {
-        target = EmptyState()
+        target = InitialState()
     }
 
     @After

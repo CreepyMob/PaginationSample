@@ -21,7 +21,7 @@ interface State<T> {
 
 }
 
-class EmptyState<T> : State<T> {
+class InitialState<T> : State<T> {
 
     private var hasNotEmptyCache: Boolean = false
 
@@ -53,7 +53,7 @@ class InitialProgress<T> : State<T> {
         return ViewState.EmptyLoadingViewState()
     }
 
-    override fun restart() = this
+    override fun restart() = InitialProgress<T>()
 
     override fun newPage(pageEmpty: Boolean): State<T> = if (pageEmpty) {
         EmptyData()
@@ -73,7 +73,7 @@ class InitialProgress<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 }
 
 class RestartProgress<T> : State<T> {
@@ -84,7 +84,7 @@ class RestartProgress<T> : State<T> {
         return ViewState.EmptyLoadingViewState()
     }
 
-    override fun restart() = this
+    override fun restart() = RestartProgress<T>()
 
     override fun newPage(pageEmpty: Boolean): State<T> = if (pageEmpty) {
         EmptyData()
@@ -98,7 +98,7 @@ class RestartProgress<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 
 
 }
@@ -118,7 +118,7 @@ class EmptyError<T>(private val error: Throwable) : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 }
 
 data class EmptyErrorRefresh<T>(private val error: Throwable) : State<T> {
@@ -158,7 +158,7 @@ class EmptyData<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 
 }
 
@@ -184,11 +184,11 @@ class EmptyDataRefresh<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 }
 
 data class CachedData<T>(private val passiveProgress: Boolean,
-                    private var throwable: Throwable? = null) : State<T> {
+                         private var throwable: Throwable? = null) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
         return ViewState.ContentViewState(pageLoader.content, isPassiveProgress = passiveProgress, contentThrowable = throwable?.let { ContentThrowable(it, whenRefresh = true) })
@@ -200,11 +200,37 @@ data class CachedData<T>(private val passiveProgress: Boolean,
         Data()
     }
 
-    override fun updateCache(emptyCache: Boolean): State<T> = CachedData(passiveProgress, throwable)
+    override fun updateCache(emptyCache: Boolean): State<T> = if (emptyCache) {
+        EmptyData()
+    } else {
+        CachedData(passiveProgress, throwable)
+    }
 
     override fun restart() = RestartProgress<T>()
 
     override fun refresh() = CachedRefresh<T>()
+
+    override fun release() = Released<T>()
+
+}
+
+class CachedRefresh<T> : State<T> {
+
+    override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
+
+        pageLoader.loadFirstPage()
+        return ViewState.ContentViewState(pageLoader.content, isRefresh = true)
+    }
+
+    override fun restart() = RestartProgress<T>()
+
+    override fun newPage(pageEmpty: Boolean): State<T> = if (pageEmpty) {
+        EmptyData()
+    } else {
+        Data()
+    }
+
+    override fun fail(error: Throwable): State<T> = CachedData(false, error)
 
     override fun release() = Released<T>()
 
@@ -218,7 +244,12 @@ data class Data<T>(val contentThrowable: ContentThrowable? = null) : State<T> {
                 contentThrowable = contentThrowable)
     }
 
-    override fun updateCache(emptyCache: Boolean): State<T> = Data(contentThrowable)
+    override fun updateCache(emptyCache: Boolean): State<T> = if (emptyCache) {
+        EmptyData()
+    } else {
+        Data(contentThrowable)
+    }
+
 
     override fun restart() = RestartProgress<T>()
 
@@ -255,28 +286,6 @@ data class Refresh<T>(private val reachAllData: Boolean = false) : State<T> {
 
 }
 
-class CachedRefresh<T> : State<T> {
-
-    override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-
-        pageLoader.loadFirstPage()
-        return ViewState.ContentViewState(pageLoader.content, isRefresh = true)
-    }
-
-    override fun restart() = RestartProgress<T>()
-
-    override fun newPage(pageEmpty: Boolean): State<T> = if (pageEmpty) {
-        EmptyData()
-    } else {
-        Data()
-    }
-
-    override fun fail(error: Throwable): State<T> = CachedData(false, error)
-
-    override fun release() = Released<T>()
-
-}
-
 class PageProgress<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
@@ -301,7 +310,7 @@ class PageProgress<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 
 }
 
@@ -328,7 +337,11 @@ data class AllData<T>(private val throwable: Throwable? = null) : State<T> {
         return ViewState.ContentViewState(pageLoader.content, contentThrowable = throwable?.let { ContentThrowable(throwable, whenRefresh = true) })
     }
 
-    override fun updateCache(emptyCache: Boolean): State<T> = AllData(throwable)
+    override fun updateCache(emptyCache: Boolean): State<T> = if (emptyCache) {
+        EmptyData()
+    } else {
+        AllData(throwable)
+    }
 
     override fun restart() = RestartProgress<T>()
 
@@ -347,5 +360,5 @@ class Released<T> : State<T> {
 
     override fun equals(other: Any?): Boolean = other != null && this::class == other::class
 
-    override fun hashCode(): Int  =  javaClass.hashCode()
+    override fun hashCode(): Int = javaClass.hashCode()
 }
