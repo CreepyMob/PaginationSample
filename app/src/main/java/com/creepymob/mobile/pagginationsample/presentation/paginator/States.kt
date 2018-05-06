@@ -9,7 +9,6 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 interface State<T> {
 
-    fun invoked(): Boolean
     fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>?
     fun restart(): State<T> = this
     fun refresh(): State<T> = this
@@ -22,27 +21,34 @@ interface State<T> {
 
 }
 
-data class EmptyState<T>(private var invoked: Boolean = false) : State<T> {
+class EmptyState<T> : State<T> {
 
-    override fun invoked(): Boolean = invoked
+    private var hasNotEmptyCache: Boolean = false
 
-    override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
-        return null
+    override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? = null
+
+
+    override fun restart(): State<T> = InitialProgress()
+
+    override fun refresh(): State<T> = if (hasNotEmptyCache) {
+        CachedData(true)
+    } else {
+        InitialProgress()
     }
 
-    override fun refresh(): State<T> = InitialProgress()
+    override fun updateCache(emptyCache: Boolean): State<T> {
+        hasNotEmptyCache = !emptyCache
+        return super.updateCache(emptyCache)
+    }
 
     override fun release() = Released<T>()
 
 }
 
-data class InitialProgress<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class InitialProgress<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T> {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.EmptyLoadingViewState()
     }
@@ -65,14 +71,15 @@ data class InitialProgress<T>(private var invoked: Boolean = false) : State<T> {
 
     override fun release() = Released<T>()
 
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
 }
 
-data class RestartProgress<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class RestartProgress<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T> {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.EmptyLoadingViewState()
     }
@@ -89,14 +96,17 @@ data class RestartProgress<T>(private var invoked: Boolean = false) : State<T> {
 
     override fun release() = Released<T>()
 
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
+
+
 }
 
-data class EmptyError<T>(private val error: Throwable, private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class EmptyError<T>(private val error: Throwable) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         return ViewState.EmptyListErrorViewState(error)
     }
 
@@ -105,14 +115,16 @@ data class EmptyError<T>(private val error: Throwable, private var invoked: Bool
     override fun refresh() = EmptyErrorRefresh<T>(error)
 
     override fun release() = Released<T>()
+
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
 }
 
-data class EmptyErrorRefresh<T>(private val error: Throwable, private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+data class EmptyErrorRefresh<T>(private val error: Throwable) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.EmptyListErrorViewState(error, true)
     }
@@ -131,12 +143,10 @@ data class EmptyErrorRefresh<T>(private val error: Throwable, private var invoke
 
 }
 
-data class EmptyData<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class EmptyData<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         return ViewState.EmptyContentViewState()
     }
 
@@ -146,14 +156,16 @@ data class EmptyData<T>(private var invoked: Boolean = false) : State<T> {
 
     override fun release() = Released<T>()
 
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
+
 }
 
-data class EmptyDataRefresh<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class EmptyDataRefresh<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.EmptyContentViewState(true)
     }
@@ -170,16 +182,15 @@ data class EmptyDataRefresh<T>(private var invoked: Boolean = false) : State<T> 
 
     override fun release() = Released<T>()
 
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
 }
 
 data class CachedData<T>(private val passiveProgress: Boolean,
-                         private var throwable: Throwable? = null,
-                         private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+                    private var throwable: Throwable? = null) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
         return ViewState.ContentViewState(pageLoader.content, isPassiveProgress = passiveProgress, contentThrowable = throwable?.let { ContentThrowable(it, whenRefresh = true) })
     }
 
@@ -189,6 +200,8 @@ data class CachedData<T>(private val passiveProgress: Boolean,
         Data()
     }
 
+    override fun updateCache(emptyCache: Boolean): State<T> = CachedData(passiveProgress, throwable)
+
     override fun restart() = RestartProgress<T>()
 
     override fun refresh() = CachedRefresh<T>()
@@ -197,16 +210,15 @@ data class CachedData<T>(private val passiveProgress: Boolean,
 
 }
 
-data class Data<T>(val contentThrowable: ContentThrowable? = null,
-                   private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+data class Data<T>(val contentThrowable: ContentThrowable? = null) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         return ViewState.ContentViewState(pageLoader.content,
                 contentThrowable = contentThrowable)
     }
+
+    override fun updateCache(emptyCache: Boolean): State<T> = Data(contentThrowable)
 
     override fun restart() = RestartProgress<T>()
 
@@ -217,12 +229,10 @@ data class Data<T>(val contentThrowable: ContentThrowable? = null,
     override fun release() = Released<T>()
 }
 
-data class Refresh<T>(private val reachAllData: Boolean = false, private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+data class Refresh<T>(private val reachAllData: Boolean = false) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.ContentViewState(pageLoader.content, isRefresh = true)
     }
@@ -245,12 +255,10 @@ data class Refresh<T>(private val reachAllData: Boolean = false, private var inv
 
 }
 
-data class CachedRefresh<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class CachedRefresh<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         pageLoader.loadFirstPage()
         return ViewState.ContentViewState(pageLoader.content, isRefresh = true)
     }
@@ -263,19 +271,16 @@ data class CachedRefresh<T>(private var invoked: Boolean = false) : State<T> {
         Data()
     }
 
-    override fun fail(error: Throwable): State<T> = CachedData<T>(false, error)
-
+    override fun fail(error: Throwable): State<T> = CachedData(false, error)
 
     override fun release() = Released<T>()
 
 }
 
-data class PageProgress<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class PageProgress<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         pageLoader.loadNextPage()
         return ViewState.ContentViewState(pageLoader.content, isNextPageLoaded = true)
     }
@@ -293,19 +298,22 @@ data class PageProgress<T>(private var invoked: Boolean = false) : State<T> {
     override fun fail(error: Throwable) = PageProgressFail<T>(error)
 
     override fun release() = Released<T>()
+
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
+
 }
 
-data class PageProgressFail<T>(private val throwable: Throwable, private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+data class PageProgressFail<T>(private val throwable: Throwable) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
+
         return ViewState.ContentViewState(pageLoader.content,
                 contentThrowable = ContentThrowable(throwable, whenNextPageLoaded = true))
     }
 
-    override fun retry(): State<T> = PageProgress<T>()
+    override fun retry(): State<T> = PageProgress()
 
     override fun restart() = RestartProgress<T>()
 
@@ -314,15 +322,13 @@ data class PageProgressFail<T>(private val throwable: Throwable, private var inv
     override fun release() = Released<T>()
 }
 
-data class AllData<T>(private val throwable: Throwable? = null, private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+data class AllData<T>(private val throwable: Throwable? = null) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
-
         return ViewState.ContentViewState(pageLoader.content, contentThrowable = throwable?.let { ContentThrowable(throwable, whenRefresh = true) })
     }
+
+    override fun updateCache(emptyCache: Boolean): State<T> = AllData(throwable)
 
     override fun restart() = RestartProgress<T>()
 
@@ -332,14 +338,14 @@ data class AllData<T>(private val throwable: Throwable? = null, private var invo
 
 }
 
-data class Released<T>(private var invoked: Boolean = false) : State<T> {
-
-    override fun invoked(): Boolean = invoked
+class Released<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>): ViewState<T>? {
-        invoked = true
         pageLoader.release()
         return null
     }
 
+    override fun equals(other: Any?): Boolean = other != null && this::class == other::class
+
+    override fun hashCode(): Int  =  javaClass.hashCode()
 }

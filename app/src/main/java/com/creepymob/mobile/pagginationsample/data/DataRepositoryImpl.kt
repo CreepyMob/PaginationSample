@@ -22,8 +22,8 @@ class DataRepositoryImpl : DataRepository {
 
     override fun update(filter: DataLoadFilter, offset: Int): Single<List<LoadItem>> = /*Completable.never()*/
             Single.fromCallable { generateNext(offset) }
-                    .delay(5000, TimeUnit.MILLISECONDS)
-                    .onErrorResumeNext { Single.timer(5000, TimeUnit.MILLISECONDS).flatMap { _ -> Single.error<List<LoadItem>>(it) } }
+                    .delay(2000, TimeUnit.MILLISECONDS)
+                    .onErrorResumeNext { Single.timer(2000, TimeUnit.MILLISECONDS).flatMap { _ -> Single.error<List<LoadItem>>(it) } }
                     .map {
                         mutableListOf<LoadItem>().apply {
 

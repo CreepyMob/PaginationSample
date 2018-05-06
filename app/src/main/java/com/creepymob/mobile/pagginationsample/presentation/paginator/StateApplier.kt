@@ -13,8 +13,9 @@ class StateApplier<T>(
 
 
     fun apply(newState: State<T>) {
+        val previousState = stateStore.state
         stateStore.state = newState
-        stateInvoker(newState, loader)
+        stateInvoker(previousState, newState, loader)
     }
 
 }

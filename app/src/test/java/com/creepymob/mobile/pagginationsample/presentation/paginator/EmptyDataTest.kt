@@ -1,7 +1,7 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -32,19 +32,19 @@ class EmptyDataTest {
 
     @Test
     operator fun invoke() {
-        assertFalse(target.invoked())
+
         assertEquals(ViewState.EmptyContentViewState<Any>(), target.invoke(loader))
-        assertTrue(target.invoked())
+
     }
 
     @Test
     fun restart() {
-        assertEquals(InitialProgress<Any>(), target.restart())
+        assertEquals(RestartProgress<Any>(), target.restart())
     }
 
     @Test
     fun refresh() {
-        assertEquals(InitialProgress<Any>(), target.refresh())
+        assertEquals(EmptyDataRefresh<Any>(), target.refresh())
     }
 
     @Test

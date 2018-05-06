@@ -3,7 +3,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -34,10 +34,8 @@ class InitialProgressTest {
 
     @Test
     operator fun invoke() {
-        assertFalse(target.invoked())
         assertEquals(ViewState.EmptyLoadingViewState<Any>(), target.invoke(loader))
         verify(loader).loadFirstPage()
-        assertTrue(target.invoked())
     }
 
     @Test
@@ -63,7 +61,7 @@ class InitialProgressTest {
 
     @Test
     fun `updateCache with emptyCache false`() {
-        assertEquals(CachedData<Any>(), target.updateCache(false))
+        assertEquals(CachedData<Any>(true), target.updateCache(false))
     }
 
 

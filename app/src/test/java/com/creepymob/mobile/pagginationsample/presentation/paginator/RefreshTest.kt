@@ -3,7 +3,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -37,9 +37,9 @@ class RefreshTest {
 
     @Test
     operator fun invoke() {
-        assertFalse(target.invoked())
+
         assertEquals(ViewState.ContentViewState(content, isRefresh = true), target.invoke(loader))
-        assertTrue(target.invoked())
+
 
         inOrder(loader).apply {
             verify(loader).loadFirstPage()
@@ -49,7 +49,7 @@ class RefreshTest {
 
     @Test
     fun restart() {
-        assertEquals(InitialProgress<Any>(), target.restart())
+        assertEquals(RestartProgress<Any>(), target.restart())
     }
 
     @Test

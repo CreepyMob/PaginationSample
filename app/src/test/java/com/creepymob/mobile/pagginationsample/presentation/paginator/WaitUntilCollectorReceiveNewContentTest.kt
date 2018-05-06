@@ -1,5 +1,7 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
+import com.creepymob.mobile.pagginationsample.app.SchedulersProvider
+import com.creepymob.mobile.pagginationsample.app.SchedulersProviderTest
 import com.nhaarman.mockito_kotlin.*
 import io.reactivex.subjects.BehaviorSubject
 import org.junit.After
@@ -7,6 +9,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Spy
 import org.mockito.junit.MockitoJUnitRunner
 
 /**
@@ -19,18 +22,19 @@ class WaitUntilCollectorReceiveNewContentTest {
 
     private lateinit var target: WaitUntilCollectorReceiveNewContent<Any>
     @Mock private lateinit var collector: ContentCollector<Any>
+    @Spy private val schedulersProvider: SchedulersProvider = SchedulersProviderTest()
     private val contentTestSubject: BehaviorSubject<Collection<Any>> = BehaviorSubject.createDefault(listOf())
 
     @Before
     fun setUp() {
-        target = WaitUntilCollectorReceiveNewContent()
+        target = WaitUntilCollectorReceiveNewContent(schedulersProvider)
 
         whenever(collector.contentObservable).thenReturn(contentTestSubject)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(collector)
+        verifyNoMoreInteractions(collector, schedulersProvider)
     }
 
     @Test
@@ -54,6 +58,7 @@ class WaitUntilCollectorReceiveNewContentTest {
 
         val result = target.invoke(newContent, collector).test()
 
+        verify(schedulersProvider).io()
         verify(collector).contentObservable
 
         result.assertValue { it === newContent }
@@ -70,6 +75,7 @@ class WaitUntilCollectorReceiveNewContentTest {
         val currentCollectorContent = mutableListOf<Any>(mock(), mock(), mock(), mock(), mock(), mock())
         contentTestSubject.onNext(currentCollectorContent)
 
+        verify(schedulersProvider).io()
         verify(collector).contentObservable
 
         result.assertNoValues()
@@ -92,6 +98,7 @@ class WaitUntilCollectorReceiveNewContentTest {
         val currentCollectorContent = mutableListOf<Any>(mock(), mock(), mock(), mock(), mock(), mock())
         contentTestSubject.onNext(currentCollectorContent)
 
+        verify(schedulersProvider).io()
         verify(collector).contentObservable
 
         result.assertNoValues()

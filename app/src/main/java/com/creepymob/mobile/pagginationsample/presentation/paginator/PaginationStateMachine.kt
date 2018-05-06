@@ -9,18 +9,20 @@ class StateInvoker<T> {
 
     val viewStateObservable: Observable<ViewState<T>> = viewStateSubject.hide()
 
-    operator fun invoke(state: State<T>, loader: PageContentLoader<T>) {
-        System.out.println("State invoker state: ${state::class.simpleName} is invoked: ${state.invoked()}")
-        if (!state.invoked()) {
-            state.invoke(loader)?.also {
-                System.out.println("State invoker viewState: ${it::class.simpleName}")
+    operator fun invoke(previousState: State<T>, newState: State<T>, loader: PageContentLoader<T>) {
+        System.out.println("StateInvoker previousState: ${previousState::class.simpleName}, " +
+                "newState: ${newState::class.simpleName} " +
+                "is equals: ${previousState == newState}")
+        if (previousState !== newState) {
+            newState.invoke(loader)?.also {
+                System.out.println("StateInvoker viewState: ${it::class.simpleName}")
                 viewStateSubject.onNext(it)
             }
         }
     }
 }
 
-class StateStore<T>(var state: State<T> = InitialProgress<T>())
+class StateStore<T>(var state: State<T> = EmptyState<T>())
 
 class PaginationStateMachine<T>(/*private val stateInvoker: StateInvoker<T> = StateInvoker(),
                                 private val pageContentLoader: PageContentLoader<T> = PageContentLoader(),*/

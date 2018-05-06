@@ -1,7 +1,7 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -33,9 +33,9 @@ class EmptyStateTest {
 
     @Test
     fun invoke() {
-        assertFalse(target.invoked())
+
         assertEquals(null, target.invoke(loader))
-        assertTrue(target.invoked())
+
     }
 
     @Test

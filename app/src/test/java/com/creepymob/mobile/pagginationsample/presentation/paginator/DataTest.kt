@@ -3,7 +3,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -37,16 +37,16 @@ class DataTest {
 
     @Test
     operator fun invoke() {
-        assertFalse(target.invoked())
+
         assertEquals(ViewState.ContentViewState(content, contentThrowable = contentThrowable), target.invoke(loader))
-        assertTrue(target.invoked())
+
 
         verify(loader).content
     }
 
     @Test
     fun restart() {
-        assertEquals(InitialProgress<Any>(), target.restart())
+        assertEquals(RestartProgress<Any>(), target.restart())
     }
 
     @Test

@@ -12,13 +12,17 @@ import io.reactivex.rxkotlin.addTo
  * Time: 21:59
  *
  */
-class WaitUntilCollectorReceiveNewContent<T> {
+class WaitUntilCollectorReceiveNewContent<T>(private val schedulersProvider: SchedulersProvider) {
 
     operator fun invoke(content: Collection<T>, collector: ContentCollector<T>): Single<Collection<T>> =
             if (content.isEmpty()) {
                 Single.just(content)
             } else {
                 collector.contentObservable
+                        .observeOn(schedulersProvider.io())
+                        .doOnNext {
+                          //  System.out.println("SUBJECT isMain Thread: ${Looper.myLooper() == Looper.getMainLooper()}")
+                        }
                         .filter { it.containsAll(content) }
                         .firstOrError()
                         .flatMap { Single.just(content) }
@@ -37,7 +41,7 @@ class ContentToIsEmptyContentMapper<T> :
 class PageContentLoader<T>(
         private val collector: ContentCollector<T>,
         private val schedulersProvider: SchedulersProvider,
-        private val waitUntilCollectorReceiveNewContent: WaitUntilCollectorReceiveNewContent<T> = WaitUntilCollectorReceiveNewContent(),
+        private val waitUntilCollectorReceiveNewContent: WaitUntilCollectorReceiveNewContent<T> = WaitUntilCollectorReceiveNewContent(schedulersProvider),
         private val disposable: CompositeDisposable = CompositeDisposable(),
         private val pageCounter: PageCounter = PageCounter(0)) {
 
@@ -65,53 +69,17 @@ class PageContentLoader<T>(
         disposable.clear()
 
         request.invoke(page)
-                //.map(contentPairMapper)
                 .flatMap {
                     waitUntilCollectorReceiveNewContent(it, collector)
                 }
-                /* .flatMap { contentToIsEmpty ->
-
-                     if (contentToIsEmpty.second) {
-                         Single.just(contentToIsEmpty)
-                     } else {
-                         collector.contentObservable
-                                 .filter { it.containsAll(contentToIsEmpty.first) }
-                                 .firstOrError()
-                                 .flatMap { Single.just(contentToIsEmpty) }
-                     }
-                 }*/
                 .subscribeOn(schedulersProvider.io())
                 .observeOn(schedulersProvider.main())
                 .subscribe({
                     pageCounter.increment()
-                    //collector.set(content)
                     stateMachine.newPage(it.isEmpty())
                 }, {
                     stateMachine.fail(it)
                 }).addTo(disposable)
-
-
-        /*  collector.contentObservable.firstOrError()
-                  .flatMap {
-
-                          .map { Triple(it, ) }
-                  }*/
-
-        /*  request.invoke(page)
-                  .map(contentPairMapper)
-                  .subscribeOn(schedulersProvider.io())
-                  .observeOn(schedulersProvider.main())
-                  .subscribe(
-                          {
-                              *//* if (clearCache) {
-                                 collector.clear()
-                             }*//*
-                            pageCounter.increment()
-                            collector.set(it.first)
-                            stateMachine.newPage(it.second)
-                        },
-                        { stateMachine.fail(it) }
-                ).addTo(disposable)*/
     }
 
     fun release() {

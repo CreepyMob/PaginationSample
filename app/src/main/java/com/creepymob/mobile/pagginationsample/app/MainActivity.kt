@@ -108,15 +108,17 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
     private fun showContent(it: ViewState.ContentViewState<LoadItem>) {
         System.out.println("ViewState showContent")
 
-        contentLayout.visible = true
-        progressBar.visible = false
-        emptyContentLayout.visible = false
-        errorContentLayout.visible = false
+        window.decorView.post {
+            contentLayout.visible = true
+            progressBar.visible = false
+            emptyContentLayout.visible = false
+            errorContentLayout.visible = false
 
-        contentLayout.isRefreshing = it.isRefresh
-        adapter.content = getDisplayableItemsForViewState(it)
+            contentLayout.isRefreshing = it.isRefresh
+            adapter.content = getDisplayableItemsForViewState(it)
 
-        horizontalProgressBar.visibility = if (it.isPassiveProgress) View.VISIBLE else View.INVISIBLE
+            horizontalProgressBar.visibility = if (it.isPassiveProgress) View.VISIBLE else View.INVISIBLE
+        }
     }
 
     private fun showEmptyContent(it: ViewState.EmptyContentViewState<LoadItem>) {

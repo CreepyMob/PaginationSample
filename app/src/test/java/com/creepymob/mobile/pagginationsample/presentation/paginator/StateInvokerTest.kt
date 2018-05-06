@@ -32,46 +32,49 @@ class StateInvokerTest {
     }
 
     @Test
-    fun `invoke invoked state`() {
+    fun `invoke when previousState equals to newState state`() {
         val testViewState = target.viewStateObservable.test()
         testViewState.assertNoValues()
                 .assertNotTerminated()
 
-        val invokedState = mock<State<Any>>()
-        whenever(invokedState.invoked()).thenReturn(true)
-        target.invoke(invokedState, loader)
+        val previousState = mock<State<Any>>()
+        val newState = previousState
+
+        target.invoke(previousState, newState, loader)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
     }
 
     @Test
-    fun `invoke not invoked state when init return null`() {
+    fun `invoke when previousState not equals to newState and init return null`() {
         val testViewState = target.viewStateObservable.test()
         testViewState.assertNoValues()
                 .assertNotTerminated()
 
-        val notInvokedState = mock<State<Any>>()
-        whenever(notInvokedState.invoke(loader)).thenReturn(null)
-        whenever(notInvokedState.invoked()).thenReturn(false)
-        target.invoke(notInvokedState, loader)
+        val previousState = mock<State<Any>>()
+        val newState = mock<State<Any>>()
+
+        whenever(newState.invoke(loader)).thenReturn(null)
+        target.invoke(previousState, newState, loader)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
     }
 
     @Test
-    fun `invoke not invoked state when init return ViewState`() {
-        val notInvokedState = mock<State<Any>>()
+    fun `invoke when previousState not equals to newState and init return ViewState`() {
+        val previousState = mock<State<Any>>()
+        val newState = mock<State<Any>>()
         val viewState = mock<ViewState<Any>>()
         val testViewState = target.viewStateObservable.test()
         testViewState.assertNoValues()
                 .assertNotTerminated()
 
 
-        whenever(notInvokedState.invoke(loader)).thenReturn(viewState)
-        whenever(notInvokedState.invoked()).thenReturn(false)
-        target.invoke(notInvokedState, loader)
+        whenever(newState.invoke(loader)).thenReturn(viewState)
+
+        target.invoke(previousState, newState, loader)
 
         testViewState.assertValue(viewState)
                 .assertNotTerminated()

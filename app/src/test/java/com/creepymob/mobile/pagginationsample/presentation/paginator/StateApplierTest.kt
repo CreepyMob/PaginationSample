@@ -3,6 +3,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -38,10 +39,14 @@ class StateApplierTest {
     @Test
     fun apply() {
         val newState = mock<State<Any>>()
+        val initialState = mock<State<Any>>()
+        whenever(stateStore.state).thenReturn(initialState)
+
         target.apply(newState)
 
+        verify(stateStore).state
         verify(stateStore).state = newState
-        verify(invoker).invoke(newState, loader)
+        verify(invoker).invoke(initialState, newState, loader)
     }
 
 }
