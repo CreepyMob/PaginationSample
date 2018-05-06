@@ -40,7 +40,7 @@ class EmptyStateTest {
 
     @Test
     fun refresh() {
-        assertEquals(EmptyProgress<Any>(), target.refresh())
+        assertEquals(InitialProgress<Any>(), target.refresh())
     }
 
     @Test

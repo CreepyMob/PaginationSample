@@ -1,12 +1,10 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
-import io.reactivex.Scheduler
+import com.creepymob.mobile.pagginationsample.app.SchedulersProvider
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Function
 import io.reactivex.rxkotlin.addTo
-import io.reactivex.schedulers.Schedulers
 
 /**
  * User: andrey
@@ -14,26 +12,34 @@ import io.reactivex.schedulers.Schedulers
  * Time: 21:59
  *
  */
-val dataBaseAllContentCollectionDataEmptyChecker: (oldCollection: Collection<*>, newCollection: Collection<*>) -> Boolean =
-        { oldCollection, newCollection ->
-            oldCollection.containsAll(newCollection)
-        }
+class WaitUntilCollectorReceiveNewContent<T> {
 
-class ContentToCheckedContentPairMapper<T>(private val collector: ContentCollector<T>, private val collectionChecker: (oldCollection: Collection<*>, newCollection: Collection<*>) -> Boolean = dataBaseAllContentCollectionDataEmptyChecker) :
+    operator fun invoke(content: Collection<T>, collector: ContentCollector<T>): Single<Collection<T>> =
+            if (content.isEmpty()) {
+                Single.just(content)
+            } else {
+                collector.contentObservable
+                        .filter { it.containsAll(content) }
+                        .firstOrError()
+                        .flatMap { Single.just(content) }
+            }
+}
+
+
+class ContentToIsEmptyContentMapper<T> :
         Function<Collection<T>, Pair<Collection<T>, Boolean>> {
 
     override fun apply(it: Collection<T>): Pair<Collection<T>, Boolean> {
-        val isNewContentEmpty = collectionChecker(collector.content, it)
         return Pair(it, it.isEmpty())
     }
 }
 
-class PageContentLoader<T>(private val subscribeScheduler: Scheduler = Schedulers.io(),
-                           private val observeScheduler: Scheduler = AndroidSchedulers.mainThread(),
-                           private val collector: ContentCollector<T> = ContentCollector(),
-                           private val contentPairMapper: ContentToCheckedContentPairMapper<T> = ContentToCheckedContentPairMapper(collector, dataBaseAllContentCollectionDataEmptyChecker),
-                           private val disposable: CompositeDisposable = CompositeDisposable(),
-                           private val pageCounter: PageCounter = PageCounter(0)) {
+class PageContentLoader<T>(
+        private val collector: ContentCollector<T>,
+        private val schedulersProvider: SchedulersProvider,
+        private val waitUntilCollectorReceiveNewContent: WaitUntilCollectorReceiveNewContent<T> = WaitUntilCollectorReceiveNewContent(),
+        private val disposable: CompositeDisposable = CompositeDisposable(),
+        private val pageCounter: PageCounter = PageCounter(0)) {
 
     val content: Collection<T>
         get() = collector.content
@@ -46,33 +52,66 @@ class PageContentLoader<T>(private val subscribeScheduler: Scheduler = Scheduler
         this.stateMachine = stateMachine;
     }
 
-    fun loadFirstPage(currentState: State<T>) {
+    fun loadFirstPage() {
         pageCounter.reset()
-        loadPage(pageCounter.currentPage, currentState, true)
+        loadPage(pageCounter.currentPage)
     }
 
-    fun loadNextPage(currentState: State<T>) {
-        loadPage(pageCounter.currentPage, currentState, false)
+    fun loadNextPage() {
+        loadPage(pageCounter.currentPage)
     }
 
-    private fun loadPage(page: Int, currentState: State<T>, clearCache: Boolean) {
+    private fun loadPage(page: Int) {
         disposable.clear()
-        request.invoke(page)
-                .map(contentPairMapper)
-                .subscribeOn(subscribeScheduler)
-                .observeOn(observeScheduler)
-                .subscribe(
-                        {
 
-                            if (clearCache) {
-                                collector.clear()
-                            }
+        request.invoke(page)
+                //.map(contentPairMapper)
+                .flatMap {
+                    waitUntilCollectorReceiveNewContent(it, collector)
+                }
+                /* .flatMap { contentToIsEmpty ->
+
+                     if (contentToIsEmpty.second) {
+                         Single.just(contentToIsEmpty)
+                     } else {
+                         collector.contentObservable
+                                 .filter { it.containsAll(contentToIsEmpty.first) }
+                                 .firstOrError()
+                                 .flatMap { Single.just(contentToIsEmpty) }
+                     }
+                 }*/
+                .subscribeOn(schedulersProvider.io())
+                .observeOn(schedulersProvider.main())
+                .subscribe({
+                    pageCounter.increment()
+                    //collector.set(content)
+                    stateMachine.newPage(it.isEmpty())
+                }, {
+                    stateMachine.fail(it)
+                }).addTo(disposable)
+
+
+        /*  collector.contentObservable.firstOrError()
+                  .flatMap {
+
+                          .map { Triple(it, ) }
+                  }*/
+
+        /*  request.invoke(page)
+                  .map(contentPairMapper)
+                  .subscribeOn(schedulersProvider.io())
+                  .observeOn(schedulersProvider.main())
+                  .subscribe(
+                          {
+                              *//* if (clearCache) {
+                                 collector.clear()
+                             }*//*
                             pageCounter.increment()
-                            collector.add(it.first)
-                            stateMachine.apply(currentState.newPage(it.second))
+                            collector.set(it.first)
+                            stateMachine.newPage(it.second)
                         },
-                        { stateMachine.apply(currentState.fail(it)) }
-                ).addTo(disposable)
+                        { stateMachine.fail(it) }
+                ).addTo(disposable)*/
     }
 
     fun release() {

@@ -46,7 +46,7 @@ class DataTest {
 
     @Test
     fun restart() {
-        assertEquals(EmptyProgress<Any>(), target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test

@@ -2,8 +2,8 @@ package com.creepymob.mobile.pagginationsample.domain
 
 import com.creepymob.mobile.pagginationsample.entity.DataLoadFilter
 import com.creepymob.mobile.pagginationsample.entity.LoadItem
-import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 
 /**
  * User: andrey
@@ -15,6 +15,6 @@ interface DataRepository{
 
     val observable: Observable<List<LoadItem>>
 
-    fun update(filter: DataLoadFilter, offset: Int): Completable
+    fun update(filter: DataLoadFilter, offset: Int): Single<List<LoadItem>>
 
 }

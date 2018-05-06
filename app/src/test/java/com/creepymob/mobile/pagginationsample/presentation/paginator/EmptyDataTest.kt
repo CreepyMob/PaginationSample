@@ -39,12 +39,12 @@ class EmptyDataTest {
 
     @Test
     fun restart() {
-        assertEquals(EmptyProgress<Any>(), target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test
     fun refresh() {
-        assertEquals(EmptyProgress<Any>(), target.refresh())
+        assertEquals(InitialProgress<Any>(), target.refresh())
     }
 
     @Test

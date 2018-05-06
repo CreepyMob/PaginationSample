@@ -1,7 +1,6 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.*
-import io.reactivex.Single
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -18,35 +17,21 @@ import org.mockito.junit.MockitoJUnitRunner
 class PaginationStateMachineTest {
 
     private lateinit var target: PaginationStateMachine<Any>
-    @Mock private lateinit var loader: PageContentLoader<Any>
+    //@Mock private lateinit var loader: PageContentLoader<Any>
     @Mock private lateinit var stateStore: StateStore<Any>
-    @Mock private lateinit var invoker: StateInvoker<Any>
-    @Mock private lateinit var request: (Int) -> Single<out Collection<Any>>
+    @Mock private lateinit var stateApplier: StateApplier<Any>
     @Mock private lateinit var initialState: State<Any>
 
     @Before
     fun setUp() {
-        target = PaginationStateMachine(invoker, loader, stateStore)
-
+        target = PaginationStateMachine(stateStore, stateApplier)
         whenever(stateStore.state).thenReturn(initialState)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader, stateStore, invoker, initialState)
+        verifyNoMoreInteractions(stateApplier, stateStore)
     }
-
-
-    @Test
-    fun init() {
-        target.init(request)
-
-        verify(loader).init(request, target)
-        verify(stateStore).state
-        verify(stateStore).state = initialState
-        verify(invoker).invoke(initialState, loader)
-    }
-
 
     @Test
     fun restart() {
@@ -54,11 +39,10 @@ class PaginationStateMachineTest {
         whenever(initialState.restart()).thenReturn(restartState)
 
         target.restart()
-        inOrder(loader, stateStore, invoker, initialState).apply {
+        inOrder(stateApplier, stateStore, initialState).apply {
             verify(stateStore).state
             verify(initialState).restart()
-            verify(stateStore).state = restartState
-            verify(invoker).invoke(restartState, loader)
+            verify(stateApplier).apply(restartState)
         }
     }
 
@@ -68,11 +52,10 @@ class PaginationStateMachineTest {
         whenever(initialState.refresh()).thenReturn(refreshState)
 
         target.refresh()
-        inOrder(loader, stateStore, invoker, initialState).apply {
+        inOrder(stateApplier, stateStore, initialState).apply {
             verify(stateStore).state
             verify(initialState).refresh()
-            verify(stateStore).state = refreshState
-            verify(invoker).invoke(refreshState, loader)
+            verify(stateApplier).apply(refreshState)
         }
     }
 
@@ -82,11 +65,10 @@ class PaginationStateMachineTest {
         whenever(initialState.loadNewPage()).thenReturn(loadNewPageState)
 
         target.loadNewPage()
-        inOrder(loader, stateStore, invoker, initialState).apply {
+        inOrder(stateApplier, stateStore, initialState).apply {
             verify(stateStore).state
             verify(initialState).loadNewPage()
-            verify(stateStore).state = loadNewPageState
-            verify(invoker).invoke(loadNewPageState, loader)
+            verify(stateApplier).apply(loadNewPageState)
         }
     }
 
@@ -96,12 +78,65 @@ class PaginationStateMachineTest {
         whenever(initialState.release()).thenReturn(releaseState)
 
         target.release()
-        inOrder(loader, stateStore, invoker, initialState).apply {
+        inOrder(stateApplier, stateStore, initialState).apply {
             verify(stateStore).state
             verify(initialState).release()
-            verify(stateStore).state = releaseState
-            verify(invoker).invoke(releaseState, loader)
+            verify(stateApplier).apply(releaseState)
         }
     }
 
+    @Test
+    fun retry() {
+        val retryState = mock<State<Any>>()
+        whenever(initialState.retry()).thenReturn(retryState)
+
+        target.retry()
+        inOrder(stateApplier, stateStore, initialState).apply {
+            verify(stateStore).state
+            verify(initialState).retry()
+            verify(stateApplier).apply(retryState)
+        }
+    }
+
+    @Test
+    fun newPage() {
+        val newPageState = mock<State<Any>>()
+        val emptyPage = true
+        whenever(initialState.newPage(same(emptyPage))).thenReturn(newPageState)
+
+        target.newPage(emptyPage)
+        inOrder(stateApplier, stateStore, initialState).apply {
+            verify(stateStore).state
+            verify(initialState).newPage(same(emptyPage))
+            verify(stateApplier).apply(newPageState)
+        }
+    }
+
+    @Test
+    fun updateCache() {
+        val updateCacheState = mock<State<Any>>()
+        val emptyCache = true
+        whenever(initialState.updateCache(emptyCache)).thenReturn(updateCacheState)
+
+        target.updateCache(emptyCache)
+        inOrder(stateApplier, stateStore, initialState).apply {
+            verify(stateStore).state
+            verify(initialState).updateCache(same(emptyCache))
+            verify(stateApplier).apply(updateCacheState)
+        }
+    }
+
+    @Test
+    fun fail() {
+        val updateCacheState = mock<State<Any>>()
+        val throwable = mock<Throwable>()
+        whenever(initialState.fail(throwable)).thenReturn(updateCacheState)
+
+        target.fail(throwable)
+        inOrder(stateApplier, stateStore, initialState).apply {
+            verify(stateStore).state
+            verify(initialState).fail(throwable)
+            verify(stateApplier).apply(updateCacheState)
+        }
+    }
 }

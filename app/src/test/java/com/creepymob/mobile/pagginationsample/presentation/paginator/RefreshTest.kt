@@ -42,14 +42,14 @@ class RefreshTest {
         assertTrue(target.invoked())
 
         inOrder(loader).apply {
-            verify(loader).loadFirstPage(target)
+            verify(loader).loadFirstPage()
             verify(loader).content
         }
     }
 
     @Test
     fun restart() {
-        assertEquals(EmptyProgress<Any>(), target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test

@@ -14,7 +14,7 @@ import com.creepymob.mobile.pagginationsample.data.DataRepositoryImpl
 import com.creepymob.mobile.pagginationsample.entity.DataLoadFilter
 import com.creepymob.mobile.pagginationsample.entity.LoadItem
 import com.creepymob.mobile.pagginationsample.presentation.ExamplePresenter
-import com.creepymob.mobile.pagginationsample.presentation.paginator.PaginationStateMachine
+import com.creepymob.mobile.pagginationsample.presentation.paginator.PaginationController
 import com.creepymob.mobile.pagginationsample.presentation.paginator.ViewState
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
 import com.jakewharton.rxbinding2.support.v7.widget.RxRecyclerView
@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
     private lateinit var adapter: MainAdapter
     private val reloadPageSubject: PublishSubject<Unit> = PublishSubject.create()
     private val onLoadItemClickSubject: PublishSubject<LoadItem> = PublishSubject.create()
+    private val hardReloadEventSubject: PublishSubject<Unit> = PublishSubject.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,10 +41,21 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
 
         adapter = MainAdapter(reloadPageSubject, onLoadItemClickSubject)
 
+        toolbar.title = "PaginationSample"
+        toolbar.inflateMenu(R.menu.main)
+        toolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.reload -> hardReloadEventSubject.onNext(Unit).let { true }
+                else -> false
+            }
+
+        }
+
+
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
         presenter = ExamplePresenter(initialFilter,
-                PaginationStateMachine(),
+                PaginationController.default(),
                 DataRepositoryImpl(),
                 SchedulersProviderImpl(),
                 CompositeDisposable())
@@ -63,7 +75,7 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
     override val loadMoreEvent: Observable<Unit> by lazy {
         RxRecyclerView
                 .scrollEvents(recyclerView)
-                .filter { event -> event.view().canScrollVertically(1) }
+                .filter { event -> !event.view().canScrollVertically(1) }
                 .map { Unit }
                 .doOnNext { System.out.println("RecyclerView SCROLL DOWN") }
     }
@@ -81,12 +93,14 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
 
     override val reloadPageEvent: Observable<Unit>  by lazy { reloadPageSubject.hide() }
 
+    override val hardReloadEvent: Observable<Unit> = hardReloadEventSubject.hide()
+
     override fun render(listViewState: ViewState<LoadItem>) {
         System.out.println("ViewState render listViewState: $listViewState")
         when (listViewState) {
             is ViewState.EmptyLoadingViewState<LoadItem> -> showEmptyLoading()
-            is ViewState.EmptyListErrorViewState<LoadItem> -> showEmptyListError()
-            is ViewState.EmptyContentViewState<LoadItem> -> showEmptyContent()
+            is ViewState.EmptyListErrorViewState<LoadItem> -> showEmptyListError(listViewState)
+            is ViewState.EmptyContentViewState<LoadItem> -> showEmptyContent(listViewState)
             is ViewState.ContentViewState<LoadItem> -> showContent(listViewState)
         }
     }
@@ -101,33 +115,56 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
 
         contentLayout.isRefreshing = it.isRefresh
         adapter.content = getDisplayableItemsForViewState(it)
+
+        horizontalProgressBar.visibility = if (it.isPassiveProgress) View.VISIBLE else View.INVISIBLE
     }
 
-    private fun showEmptyContent() {
+    private fun showEmptyContent(it: ViewState.EmptyContentViewState<LoadItem>) {
         System.out.println("ViewState showEmptyContent")
 
-        contentLayout.visible = false
-        progressBar.visible = false
-        emptyContentLayout.visible = true
-        errorContentLayout.visible = false
+        adapter.content = emptyList()
+
+        window.decorView.post {
+            contentLayout.visible = false
+            progressBar.visible = false
+            emptyContentLayout.visible = true
+            errorContentLayout.visible = false
+
+            horizontalProgressBar.visibility = if (it.isPassiveProgress) View.VISIBLE else View.INVISIBLE
+        }
+
+
     }
 
-    private fun showEmptyListError() {
+    private fun showEmptyListError(it: ViewState.EmptyListErrorViewState<LoadItem>) {
         System.out.println("ViewState showEmptyListError")
 
-        contentLayout.visible = false
-        progressBar.visible = false
-        emptyContentLayout.visible = false
-        errorContentLayout.visible = true
+        adapter.content = emptyList()
+
+        window.decorView.post {
+            contentLayout.visible = false
+            progressBar.visible = false
+            emptyContentLayout.visible = false
+            errorContentLayout.visible = true
+
+            horizontalProgressBar.visibility = if (it.isPassiveProgress) View.VISIBLE else View.INVISIBLE
+        }
     }
 
     private fun showEmptyLoading() {
         System.out.println("ViewState showEmptyLoading")
 
-        contentLayout.visible = false
-        progressBar.visibility = View.VISIBLE
-        emptyContentLayout.visible = false
-        errorContentLayout.visible = false
+        adapter.content = emptyList()
+
+        window.decorView.post {
+            contentLayout.visible = false
+            progressBar.visibility = View.VISIBLE
+            emptyContentLayout.visible = false
+            errorContentLayout.visible = false
+
+            horizontalProgressBar.visibility = View.INVISIBLE
+        }
+
     }
 
     private fun getDisplayableItemsForViewState(it: ViewState.ContentViewState<LoadItem>): List<DisplayableItem> {

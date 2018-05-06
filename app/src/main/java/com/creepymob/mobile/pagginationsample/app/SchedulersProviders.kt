@@ -22,7 +22,22 @@ class SchedulersProviderImpl : SchedulersProvider {
 
     override fun newThread() = Schedulers.newThread()
 
-    override fun main() = AndroidSchedulers.mainThread()
+    override fun main(): Scheduler = AndroidSchedulers.mainThread()
+}
+
+class SchedulersProviderTest(private val scheduler: Scheduler = Schedulers.trampoline()) : SchedulersProvider {
+
+    override fun single() = scheduler
+
+    override fun computation() = scheduler
+
+    override fun io() = scheduler
+
+    override fun trampoline() = scheduler
+
+    override fun newThread() = scheduler
+
+    override fun main() = scheduler
 }
 
 interface SchedulersProvider {

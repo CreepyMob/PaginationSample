@@ -1,16 +1,16 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
+import com.creepymob.mobile.pagginationsample.app.SchedulersProviderTest
 import com.nhaarman.mockito_kotlin.*
-import io.reactivex.Scheduler
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import junit.framework.TestCase.assertSame
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Spy
 import org.mockito.junit.MockitoJUnitRunner
 
 /**
@@ -24,28 +24,26 @@ class PageContentLoaderTest {
     private lateinit var target: PageContentLoader<Any>
     @Mock private lateinit var collector: ContentCollector<Any>
     @Mock private lateinit var counter: PageCounter
-    private val subscribeScheduler: Scheduler = Schedulers.trampoline()
-    private val observeScheduler: Scheduler = Schedulers.trampoline()
+    @Spy private val schedulersProvider = SchedulersProviderTest()
+
     @Mock private lateinit var disposable: CompositeDisposable
-    @Mock private lateinit var contentPairMapper: ContentToCheckedContentPairMapper<Any>
-    @Mock private lateinit var request: (Int) -> Single<out Collection<Any>>
+    @Mock private lateinit var waitUntilCollectorReceiveNewContent: WaitUntilCollectorReceiveNewContent<Any>
+    @Mock private lateinit var request: (Int) -> Single<Collection<Any>>
     @Mock private lateinit var stateMachine: PaginationStateMachine<Any>
 
     @Mock private lateinit var content: Collection<Any>
 
-    @Mock private lateinit var currentState: State<Any>
-
 
     @Before
     fun setUp() {
-        target = PageContentLoader(subscribeScheduler, observeScheduler, collector, contentPairMapper, disposable, counter)
+        target = PageContentLoader(collector, schedulersProvider, waitUntilCollectorReceiveNewContent, disposable, counter)
         target.init(request, stateMachine)
         whenever(collector.content).thenReturn(content)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(collector, contentPairMapper, disposable, counter, stateMachine)
+        verifyNoMoreInteractions(collector, schedulersProvider, waitUntilCollectorReceiveNewContent, disposable, counter)
 
     }
 
@@ -62,13 +60,16 @@ class PageContentLoaderTest {
         whenever(counter.currentPage).thenReturn(0)
         whenever(request(0)).thenReturn(Single.error(throwable))
 
-        target.loadFirstPage(currentState)
-
-        verify(collector).clear()
+        target.loadFirstPage()
 
         inOrder(counter).apply {
             verify(counter).reset()
             verify(counter).currentPage
+        }
+
+        inOrder(schedulersProvider).apply {
+            verify(schedulersProvider).io()
+            verify(schedulersProvider).main()
         }
 
         inOrder(disposable, request).apply {
@@ -78,24 +79,25 @@ class PageContentLoaderTest {
         }
 
 
-        verify(currentState).fail(throwable)
+        verify(stateMachine).fail(throwable)
     }
 
     @Test
     fun `loadFirstPage when request success`() {
+        val isNewContentEmpty = true
         val newContent = mock<Collection<Any>>()
-        val contentPairMap = Pair(newContent, true)
+        whenever(newContent.isEmpty()).thenReturn(isNewContentEmpty)
         whenever(counter.currentPage).thenReturn(0)
         whenever(request(0)).thenReturn(Single.just(newContent))
-        whenever(contentPairMapper.apply(newContent)).thenReturn(contentPairMap)
+        whenever(waitUntilCollectorReceiveNewContent.invoke(newContent, collector)).thenReturn(Single.just(newContent))
 
-        target.loadFirstPage(currentState)
+        target.loadFirstPage()
 
-        verify(contentPairMapper).apply(newContent)
+        verify(waitUntilCollectorReceiveNewContent).invoke(newContent, collector)
 
-        inOrder(collector).apply {
-            verify(collector).clear()
-            verify(collector).add(contentPairMap.first)
+        inOrder(schedulersProvider).apply {
+            verify(schedulersProvider).io()
+            verify(schedulersProvider).main()
         }
 
         inOrder(counter).apply {
@@ -104,51 +106,59 @@ class PageContentLoaderTest {
             verify(counter).increment()
         }
 
+
         inOrder(disposable, request).apply {
             verify(disposable).clear()
             verify(request).invoke(0)
             verify(disposable).add(any())
         }
 
-        verify(currentState).newPage(contentPairMap.second)
+        verify(stateMachine).newPage(same(isNewContentEmpty))
     }
 
     @Test
     fun `loadNextPage when request failed`() {
         val throwable = RuntimeException()
         whenever(counter.currentPage).thenReturn(0)
-        whenever(request(1)).thenReturn(Single.error(throwable))
+        whenever(request(0)).thenReturn(Single.error(throwable))
 
-        target.loadNextPage(currentState)
+        target.loadNextPage()
 
-        inOrder(counter).apply {
-            verify(counter).currentPage
-        }
+        verify(counter).currentPage
 
         inOrder(disposable, request).apply {
             verify(disposable).clear()
-            verify(request).invoke(1)
+            verify(request).invoke(0)
             verify(disposable).add(any())
         }
 
+        inOrder(schedulersProvider).apply {
+            verify(schedulersProvider).io()
+            verify(schedulersProvider).main()
+        }
 
-        verify(currentState).fail(throwable)
+        verify(stateMachine).fail(throwable)
     }
 
     @Test
     fun `loadNextPage when request success`() {
+        val isNewContentEmpty = true
         val newContent = mock<Collection<Any>>()
-        val contentPairMap = Pair(newContent, true)
+        whenever(newContent.isEmpty()).thenReturn(isNewContentEmpty)
         whenever(counter.currentPage).thenReturn(0)
-        whenever(request(1)).thenReturn(Single.just(newContent))
-        whenever(contentPairMapper.apply(newContent)).thenReturn(contentPairMap)
+        whenever(request(0)).thenReturn(Single.just(newContent))
+        whenever(waitUntilCollectorReceiveNewContent.invoke(newContent, collector)).thenReturn(Single.just(newContent))
 
-        target.loadNextPage(currentState)
+        target.loadNextPage()
 
-        verify(contentPairMapper).apply(newContent)
+        // verify(contentPairMapper).apply(newContent)
 
-        inOrder(collector).apply {
-            verify(collector).add(contentPairMap.first)
+        verify(waitUntilCollectorReceiveNewContent).invoke(newContent, collector)
+
+
+        inOrder(schedulersProvider).apply {
+            verify(schedulersProvider).io()
+            verify(schedulersProvider).main()
         }
 
         inOrder(counter).apply {
@@ -158,17 +168,13 @@ class PageContentLoaderTest {
 
         inOrder(disposable, request).apply {
             verify(disposable).clear()
-            verify(request).invoke(1)
+            verify(request).invoke(0)
             verify(disposable).add(any())
         }
 
-        verify(currentState).newPage(contentPairMap.second)
+        verify(stateMachine).newPage(same(isNewContentEmpty))
     }
 
-    @Test
-    fun loadNextPage() {
-
-    }
 
     @Test
     fun release() {

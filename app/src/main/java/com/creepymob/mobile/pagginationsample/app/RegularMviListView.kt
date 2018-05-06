@@ -18,6 +18,8 @@ interface RegularMviListView<T> {
 
     val filterEvent: Observable<DataLoadFilter>
 
+    val hardReloadEvent: Observable<Unit>
+
     val reloadPageEvent: Observable<Unit>
 
     fun render(listViewState: ViewState<T>)

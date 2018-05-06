@@ -62,7 +62,8 @@ dependencies {
         exclude module: 'appcompat-v7'
     }
 
-
+    implementation "android.arch.persistence.room:runtime:1.0.0"
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
     implementation 'com.hannesdorfmann:adapterdelegates3:3.0.1'
 
 

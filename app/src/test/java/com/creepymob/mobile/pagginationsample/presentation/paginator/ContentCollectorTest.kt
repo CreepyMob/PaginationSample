@@ -39,7 +39,7 @@ class ContentCollectorTest {
 
     @Test
     fun add() {
-        target.add(newContent)
+        target.set(newContent)
         verify(collection).clear()
         verify(collection).addAll(newContent)
     }

@@ -44,14 +44,14 @@ class PageProgressTest {
         assertTrue(target.invoked())
 
         inOrder(loader).apply {
-            verify(loader).loadNextPage(target)
+            verify(loader).loadNextPage()
             verify(loader).content
         }
     }
 
     @Test
     fun restart() {
-        assertEquals(EmptyProgress<Any>(), target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test

@@ -17,14 +17,14 @@ import org.mockito.junit.MockitoJUnitRunner
  * Time: 4:06
  */
 @RunWith(MockitoJUnitRunner::class)
-class EmptyProgressTest {
+class InitialProgressTest {
 
-    private lateinit var target: EmptyProgress<Any>
+    private lateinit var target: InitialProgress<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
 
     @Before
     fun setUp() {
-        target = EmptyProgress()
+        target = InitialProgress()
     }
 
     @After
@@ -36,13 +36,13 @@ class EmptyProgressTest {
     operator fun invoke() {
         assertFalse(target.invoked())
         assertEquals(ViewState.EmptyLoadingViewState<Any>(), target.invoke(loader))
-        verify(loader).loadFirstPage(target)
+        verify(loader).loadFirstPage()
         assertTrue(target.invoked())
     }
 
     @Test
     fun restart() {
-        assertEquals(EmptyProgress<Any>(), target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test
@@ -54,6 +54,18 @@ class EmptyProgressTest {
     fun `newPage with pageEmpty false`() {
         assertEquals(Data<Any>(), target.newPage(false))
     }
+
+
+    @Test
+    fun `updateCache with emptyCache true`() {
+        assertEquals(target, target.updateCache(true))
+    }
+
+    @Test
+    fun `updateCache with emptyCache false`() {
+        assertEquals(CachedData<Any>(), target.updateCache(false))
+    }
+
 
     @Test
     fun fail() {
