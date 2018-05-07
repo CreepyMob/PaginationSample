@@ -23,13 +23,12 @@ class PaginationController<T>(
             val stateStore = StateStore<T>()
             val contentCollector = ContentCollector<T>()
             val pageContentLoader = PageContentLoader<T>(contentCollector, schedulersProvider)
+            val cacheDataObserver = CacheDataObserver(contentCollector)
 
-
-            val stateApplier = StateApplier<T>(pageContentLoader, stateStore, stateInvoker)
+            val stateApplier = StateApplier<T>(pageContentLoader, stateStore, contentCollector, cacheDataObserver, stateInvoker)
 
             val stateMachine = PaginationStateMachine<T>(stateStore, stateApplier)
 
-            val cacheDataObserver = CacheDataObserver(contentCollector, stateMachine)
 
             return PaginationController(stateInvoker, stateMachine, pageContentLoader, cacheDataObserver)
         }
@@ -40,7 +39,7 @@ class PaginationController<T>(
 
     fun init(request: (Int) -> Single<out Collection<T>>, observable: Observable<List<T>>) {
         pageContentLoader.init(request, stateMachine)
-        cacheDataObserver.init(observable)
+        cacheDataObserver.init(observable, stateMachine)
     }
 
     fun restart() {
@@ -61,6 +60,5 @@ class PaginationController<T>(
 
     fun release() {
         stateMachine.release()
-        cacheDataObserver.release()
     }
 }

@@ -45,9 +45,6 @@ class PageContentLoader<T>(
         private val disposable: CompositeDisposable = CompositeDisposable(),
         private val pageCounter: PageCounter = PageCounter(0)) {
 
-    val content: Collection<T>
-        get() = collector.content
-
     private lateinit var request: (Int) -> Single<out Collection<T>>
     private lateinit var stateMachine: PaginationStateMachine<T>
 

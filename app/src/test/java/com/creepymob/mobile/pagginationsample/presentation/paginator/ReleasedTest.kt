@@ -20,6 +20,8 @@ class ReleasedTest {
 
     private lateinit var target: Released<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -28,16 +30,16 @@ class ReleasedTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
 
-        assertEquals(null, target.invoke(loader))
-
+        assertEquals(null, target.invoke(loader, collector, cacheDataObserver))
 
         verify(loader).release()
+        verify(cacheDataObserver).release()
     }
 
 }

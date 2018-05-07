@@ -4,7 +4,6 @@ import com.creepymob.mobile.pagginationsample.app.SchedulersProviderTest
 import com.nhaarman.mockito_kotlin.*
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import junit.framework.TestCase.assertSame
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,14 +30,10 @@ class PageContentLoaderTest {
     @Mock private lateinit var request: (Int) -> Single<Collection<Any>>
     @Mock private lateinit var stateMachine: PaginationStateMachine<Any>
 
-    @Mock private lateinit var content: Collection<Any>
-
-
     @Before
     fun setUp() {
         target = PageContentLoader(collector, schedulersProvider, waitUntilCollectorReceiveNewContent, disposable, counter)
         target.init(request, stateMachine)
-        whenever(collector.content).thenReturn(content)
     }
 
     @After
@@ -46,13 +41,6 @@ class PageContentLoaderTest {
         verifyNoMoreInteractions(collector, schedulersProvider, waitUntilCollectorReceiveNewContent, disposable, counter)
 
     }
-
-    @Test
-    fun getContent() {
-        assertSame(content, target.content)
-        verify(collector).content
-    }
-
 
     @Test
     fun `loadFirstPage when request failed`() {

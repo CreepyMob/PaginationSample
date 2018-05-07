@@ -21,6 +21,8 @@ class InitialProgressTest {
 
     private lateinit var target: InitialProgress<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -29,12 +31,12 @@ class InitialProgressTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+           verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
-        assertEquals(ViewState.EmptyLoadingViewState<Any>(), target.invoke(loader))
+        assertEquals(ViewState.EmptyLoadingViewState<Any>(), target.invoke(loader, collector, cacheDataObserver ))
         verify(loader).loadFirstPage()
     }
 

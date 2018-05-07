@@ -21,27 +21,29 @@ class DataTest {
 
     private lateinit var target: Data<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
     @Mock private lateinit var contentThrowable: ContentThrowable
     @Mock private lateinit var content: Collection<Any>
 
     @Before
     fun setUp() {
         target = Data(contentThrowable)
-        whenever(loader.content).thenReturn(content)
+        whenever(collector.content).thenReturn(content)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
 
-        assertEquals(ViewState.ContentViewState(content, contentThrowable = contentThrowable), target.invoke(loader))
+        assertEquals(ViewState.ContentViewState(content, contentThrowable = contentThrowable), target.invoke(loader, collector, cacheDataObserver))
 
 
-        verify(loader).content
+        verify(collector).content
     }
 
     @Test
@@ -51,7 +53,7 @@ class DataTest {
 
     @Test
     fun refresh() {
-        assertEquals(Refresh<Any>(), target.refresh())
+        assertEquals(Refresh<Any>(target), target.refresh())
     }
 
     @Test

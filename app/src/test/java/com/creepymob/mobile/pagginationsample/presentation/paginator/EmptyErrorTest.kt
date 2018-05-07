@@ -17,9 +17,11 @@ import org.mockito.junit.MockitoJUnitRunner
 @RunWith(MockitoJUnitRunner::class)
 class EmptyErrorTest {
 
-    private lateinit var target : EmptyError<Any>
+    private lateinit var target: EmptyError<Any>
     @Mock private lateinit var throwable: Throwable
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -28,13 +30,13 @@ class EmptyErrorTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
 
-        assertEquals(ViewState.EmptyListErrorViewState<Any>(throwable), target.invoke(loader))
+        assertEquals(ViewState.EmptyListErrorViewState<Any>(throwable), target.invoke(loader, collector, cacheDataObserver))
 
     }
 
@@ -45,7 +47,7 @@ class EmptyErrorTest {
 
     @Test
     fun refresh() {
-        assertEquals(EmptyErrorRefresh<Any>(throwable), target.refresh())
+        assertEquals(Refresh<Any>(target), target.refresh())
     }
 
     @Test

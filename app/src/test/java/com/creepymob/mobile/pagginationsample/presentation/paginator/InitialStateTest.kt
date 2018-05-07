@@ -20,6 +20,8 @@ class InitialStateTest {
     private lateinit var target: InitialState<Any>
 
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -28,13 +30,13 @@ class InitialStateTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+           verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     fun invoke() {
 
-        assertEquals(null, target.invoke(loader))
+        assertEquals(null, target.invoke(loader, collector, cacheDataObserver ))
 
     }
 

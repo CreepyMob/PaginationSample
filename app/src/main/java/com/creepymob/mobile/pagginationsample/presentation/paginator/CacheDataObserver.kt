@@ -12,12 +12,10 @@ import io.reactivex.schedulers.Schedulers
  * Time: 21:25
  *
  */
-class CacheDataObserver<T>(
-        private val contentCollector: ContentCollector<T>,
-        private val stateMachine: PaginationStateMachine<T>,
-        private val disposable: CompositeDisposable = CompositeDisposable()) {
+class CacheDataObserver<T>(private val contentCollector: ContentCollector<T>,
+                           private val disposable: CompositeDisposable = CompositeDisposable()) {
 
-    fun init(observable: Observable<List<T>>) {
+    fun init(observable: Observable<List<T>>, stateMachine: PaginationStateMachine<T>) {
         observable
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

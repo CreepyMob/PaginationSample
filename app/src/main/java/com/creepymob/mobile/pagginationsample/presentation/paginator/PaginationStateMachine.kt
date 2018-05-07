@@ -9,12 +9,16 @@ class StateInvoker<T> {
 
     val viewStateObservable: Observable<ViewState<T>> = viewStateSubject.hide()
 
-    operator fun invoke(previousState: State<T>, newState: State<T>, loader: PageContentLoader<T>) {
+    operator fun invoke(previousState: State<T>,
+                        newState: State<T>,
+                        loader: PageContentLoader<T>,
+                        contentStore: ContentStore<T>,
+                        cacheDataObserver: CacheDataObserver<T>) {
         System.out.println("StateInvoker previousState: ${previousState::class.simpleName}, " +
                 "newState: ${newState::class.simpleName} " +
                 "is equals: ${previousState == newState}")
         if (previousState !== newState) {
-            newState.invoke(loader)?.also {
+            newState.invoke(loader, contentStore, cacheDataObserver)?.also {
                 System.out.println("StateInvoker viewState: ${it::class.simpleName}")
                 viewStateSubject.onNext(it)
             }

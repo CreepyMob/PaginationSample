@@ -24,11 +24,13 @@ class StateApplierTest {
     @Mock private lateinit var stateStore: StateStore<Any>
     @Mock private lateinit var invoker: StateInvoker<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
 
     @Before
     fun setUp() {
-        target = StateApplier(loader, stateStore, invoker)
+        target = StateApplier(loader, stateStore, collector, cacheDataObserver, invoker)
     }
 
     @After
@@ -46,7 +48,7 @@ class StateApplierTest {
 
         verify(stateStore).state
         verify(stateStore).state = newState
-        verify(invoker).invoke(initialState, newState, loader)
+        verify(invoker).invoke(initialState, newState, loader, collector, cacheDataObserver)
     }
 
 }

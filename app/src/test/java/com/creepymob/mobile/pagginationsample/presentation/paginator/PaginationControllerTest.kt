@@ -23,6 +23,7 @@ class PaginationControllerTest {
 
     private lateinit var target:  PaginationController<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+
     @Mock private lateinit var invoker: StateInvoker<Any>
     @Mock private lateinit var stateMachine: PaginationStateMachine<Any>
     @Mock private lateinit var viewStateObservable: Observable<ViewState<Any>>
@@ -57,7 +58,7 @@ class PaginationControllerTest {
         target.init(request, observable)
 
         verify(loader).init(request, stateMachine)
-        verify(cacheDataObserver).init(observable)
+        verify(cacheDataObserver).init(observable, stateMachine)
     }
 
     @Test
@@ -93,7 +94,6 @@ class PaginationControllerTest {
         target.release()
 
         verify(stateMachine).release()
-        verify(cacheDataObserver).release()
     }
 
 }

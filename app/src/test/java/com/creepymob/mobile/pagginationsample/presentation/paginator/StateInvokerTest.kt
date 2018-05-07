@@ -20,6 +20,8 @@ class StateInvokerTest {
 
     private lateinit var target: StateInvoker<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collStore: ContentStore<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -28,7 +30,7 @@ class StateInvokerTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+        verifyNoMoreInteractions(loader, collStore, cacheDataObserver)
     }
 
     @Test
@@ -40,7 +42,7 @@ class StateInvokerTest {
         val previousState = mock<State<Any>>()
         val newState = previousState
 
-        target.invoke(previousState, newState, loader)
+        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
@@ -55,8 +57,8 @@ class StateInvokerTest {
         val previousState = mock<State<Any>>()
         val newState = mock<State<Any>>()
 
-        whenever(newState.invoke(loader)).thenReturn(null)
-        target.invoke(previousState, newState, loader)
+        whenever(newState.invoke(loader, collStore, cacheDataObserver)).thenReturn(null)
+        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
@@ -72,9 +74,9 @@ class StateInvokerTest {
                 .assertNotTerminated()
 
 
-        whenever(newState.invoke(loader)).thenReturn(viewState)
+        whenever(newState.invoke(loader, collStore, cacheDataObserver)).thenReturn(viewState)
 
-        target.invoke(previousState, newState, loader)
+        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
 
         testViewState.assertValue(viewState)
                 .assertNotTerminated()

@@ -19,6 +19,8 @@ class EmptyDataTest {
 
     private lateinit var target: EmptyData<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
@@ -27,13 +29,13 @@ class EmptyDataTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
 
-        assertEquals(ViewState.EmptyContentViewState<Any>(), target.invoke(loader))
+        assertEquals(ViewState.EmptyContentViewState<Any>(), target.invoke(loader, collector, cacheDataObserver))
 
     }
 
@@ -44,7 +46,7 @@ class EmptyDataTest {
 
     @Test
     fun refresh() {
-        assertEquals(EmptyDataRefresh<Any>(), target.refresh())
+        assertEquals(Refresh<Any>(target), target.refresh())
     }
 
     @Test

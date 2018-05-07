@@ -1,6 +1,6 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
-import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import junit.framework.TestCase.assertEquals
@@ -21,32 +21,31 @@ class PageProgressTest {
 
     private lateinit var target: PageProgress<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
+    @Mock private lateinit var collector: ContentCollector<Any>
+    @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
+
     @Mock private lateinit var throwable: Throwable
     @Mock private lateinit var content: Collection<Any>
-    @Mock private lateinit var newContent: Collection<Any>
 
     @Before
     fun setUp() {
         target = PageProgress()
-        whenever(loader.content).thenReturn(content)
+        whenever(collector.content).thenReturn(content)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader)
+           verifyNoMoreInteractions(loader, collector, cacheDataObserver)
     }
 
 
     @Test
     operator fun invoke() {
 
-        assertEquals(ViewState.ContentViewState(content, isNextPageLoaded = true), target.invoke(loader))
+        assertEquals(ViewState.ContentViewState(content, isNextPageLoaded = true), target.invoke(loader, collector, cacheDataObserver ))
 
-
-        inOrder(loader).apply {
-            verify(loader).loadNextPage()
-            verify(loader).content
-        }
+        verify(loader).loadNextPage()
+        verify(collector).content
     }
 
     @Test
@@ -66,7 +65,7 @@ class PageProgressTest {
 
     @Test
     fun refresh() {
-        assertEquals(Refresh<Any>(), target.refresh())
+        assertEquals(Refresh<Any>(target), target.refresh())
     }
 
     @Test
