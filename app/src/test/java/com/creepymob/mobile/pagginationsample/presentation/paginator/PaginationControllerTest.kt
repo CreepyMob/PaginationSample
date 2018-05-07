@@ -21,7 +21,7 @@ import org.mockito.junit.MockitoJUnitRunner
 @RunWith(MockitoJUnitRunner::class)
 class PaginationControllerTest {
 
-    private lateinit var target:  PaginationController<Any>
+    private lateinit var target: PaginationController<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
 
     @Mock private lateinit var invoker: StateInvoker<Any>
@@ -55,7 +55,7 @@ class PaginationControllerTest {
     @Test
     fun init() {
 
-        target.init(request, observable)
+        target.init(observable, request)
 
         verify(loader).init(request, stateMachine)
         verify(cacheDataObserver).init(observable, stateMachine)

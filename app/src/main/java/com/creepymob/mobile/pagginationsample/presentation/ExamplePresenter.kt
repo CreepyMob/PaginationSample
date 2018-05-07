@@ -59,17 +59,12 @@ class ExamplePresenter(private val filter: DataLoadFilter,
     fun init() {
 
         paginationController.viewStateObservable
-                .observeOn(schedulersProvider.main())
                 .subscribeBy {
                     view?.render(it)
                 }.addTo(disposable)
 
-        paginationController.init(
-                { page: Int ->
-                    repository.update(filter, page)
-                            .subscribeOn(schedulersProvider.io())
-                            .observeOn(schedulersProvider.main())
-                }, repository.observable)
+        paginationController.init( repository.observable,
+                { page: Int -> repository.update(filter, page) })
 
         paginationController.refresh()
 

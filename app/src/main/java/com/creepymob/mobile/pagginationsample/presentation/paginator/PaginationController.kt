@@ -37,7 +37,7 @@ class PaginationController<T>(
     val viewStateObservable: Observable<ViewState<T>>
         get() = stateInvoker.viewStateObservable
 
-    fun init(request: (Int) -> Single<out Collection<T>>, observable: Observable<List<T>>) {
+    fun init(observable: Observable<List<T>>, request: (Int) -> Single<out Collection<T>>) {
         pageContentLoader.init(request, stateMachine)
         cacheDataObserver.init(observable, stateMachine)
     }
