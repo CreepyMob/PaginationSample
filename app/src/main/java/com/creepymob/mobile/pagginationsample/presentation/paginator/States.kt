@@ -260,7 +260,7 @@ data class PageProgressFail<T>(val throwable: Throwable) : State<T> {
     override fun release() = Released<T>()
 }
 
-data class AllData<T>(private val throwable: Throwable? = null) : State<T> {
+data class AllData<T>(val throwable: Throwable? = null) : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>, contentStore: ContentStore<T>, cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
         return ViewState.ContentViewState(contentStore.content, contentThrowable = throwable?.let { ContentThrowable(throwable, whenRefresh = true) })

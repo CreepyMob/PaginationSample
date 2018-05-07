@@ -8,7 +8,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
  */
 class ViewStateFactory<T>(private val contentStore: ContentStore<T>) {
 
-    /*fun create(state: State<T>): ViewState<T>? = when (state) {
+    fun create(state: State<T>): ViewState<T>? = when (state) {
         is InitialState<T> -> null
         is InitialProgress<T> -> ViewState.EmptyLoadingViewState()
         is RestartProgress<T> -> ViewState.EmptyLoadingViewState()
@@ -22,7 +22,10 @@ class ViewStateFactory<T>(private val contentStore: ContentStore<T>) {
         is Refresh<T> -> create(state.previousState)
         is PageProgress<T> -> ViewState.ContentViewState(contentStore.content, isNextPageLoaded = true)
         is PageProgressFail<T> -> ViewState.ContentViewState(contentStore.content,
-        contentThrowable = ContentThrowable(state.throwable, whenNextPageLoaded = true))
-        is AllData<T>->
-    }*/
+                contentThrowable = ContentThrowable(state.throwable, whenNextPageLoaded = true))
+        is AllData<T> -> ViewState.ContentViewState(contentStore.content,
+                contentThrowable = state.throwable?.let { ContentThrowable(it, whenRefresh = true) })
+        is Released<T> -> null
+        else -> null //DEBUG throw RuntimeException("unknown state")
+    }
 }
