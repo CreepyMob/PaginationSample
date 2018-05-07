@@ -292,3 +292,5 @@ class Released<T> : State<T> {
 
     override fun hashCode(): Int = javaClass.hashCode()
 }
+
+class StateThrowable<T>(throwable: Throwable, from: State<T>)
