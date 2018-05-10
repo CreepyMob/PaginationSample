@@ -44,7 +44,7 @@ class AllDataTest {
 
     @Test
     fun refresh() {
-        assertEquals(Refresh<Any>(target), target.refresh())
+        assertEquals(Refresh(target), target.refresh())
     }
 
     @Test

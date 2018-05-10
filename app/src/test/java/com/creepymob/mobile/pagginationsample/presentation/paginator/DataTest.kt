@@ -21,11 +21,11 @@ class DataTest {
     @Mock private lateinit var loader: PageContentLoader<Any>
 
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
-    @Mock private lateinit var throwable: Throwable //TODO
+    @Mock private lateinit var throwable: Throwable
 
     @Before
     fun setUp() {
-        target = Data()
+        target = Data(throwable)
     }
 
     @After
