@@ -1,6 +1,7 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.After
@@ -20,17 +21,17 @@ class StateInvokerTest {
 
     private lateinit var target: StateInvoker<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
-    @Mock private lateinit var collStore: ContentStore<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
+    @Mock private lateinit var viewStateFactory: ViewStateFactory<Any>
 
     @Before
     fun setUp() {
-        target = StateInvoker()
+        target = StateInvoker(viewStateFactory)
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader, collStore, cacheDataObserver)
+        verifyNoMoreInteractions(loader, cacheDataObserver, viewStateFactory)
     }
 
     @Test
@@ -42,14 +43,14 @@ class StateInvokerTest {
         val previousState = mock<State<Any>>()
         val newState = previousState
 
-        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
+        target.invoke(previousState, newState, loader, cacheDataObserver)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
     }
 
     @Test
-    fun `invoke when previousState not equals to newState and init return null`() {
+    fun `invoke when previousState not equals to newState and factory return null`() {
         val testViewState = target.viewStateObservable.test()
         testViewState.assertNoValues()
                 .assertNotTerminated()
@@ -57,15 +58,17 @@ class StateInvokerTest {
         val previousState = mock<State<Any>>()
         val newState = mock<State<Any>>()
 
-        whenever(newState.invoke(loader, collStore, cacheDataObserver)).thenReturn(null)
-        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
+        whenever(viewStateFactory.create(newState)).thenReturn(null)
+        target.invoke(previousState, newState, loader, cacheDataObserver)
+
+        verify(viewStateFactory).create(newState)
 
         testViewState.assertNoValues()
                 .assertNotTerminated()
     }
 
     @Test
-    fun `invoke when previousState not equals to newState and init return ViewState`() {
+    fun `invoke when previousState not equals to newState and factory return ViewState`() {
         val previousState = mock<State<Any>>()
         val newState = mock<State<Any>>()
         val viewState = mock<ViewState<Any>>()
@@ -74,10 +77,11 @@ class StateInvokerTest {
                 .assertNotTerminated()
 
 
-        whenever(newState.invoke(loader, collStore, cacheDataObserver)).thenReturn(viewState)
+        whenever(viewStateFactory.create(newState)).thenReturn(viewState)
 
-        target.invoke(previousState, newState, loader, collStore, cacheDataObserver)
+        target.invoke(previousState, newState, loader, cacheDataObserver)
 
+        verify(viewStateFactory).create(newState)
         testViewState.assertValue(viewState)
                 .assertNotTerminated()
     }

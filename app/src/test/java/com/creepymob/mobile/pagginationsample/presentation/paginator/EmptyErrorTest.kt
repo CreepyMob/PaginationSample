@@ -20,7 +20,6 @@ class EmptyErrorTest {
     private lateinit var target: EmptyError<Any>
     @Mock private lateinit var throwable: Throwable
     @Mock private lateinit var loader: PageContentLoader<Any>
-    @Mock private lateinit var collector: ContentCollector<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
@@ -30,14 +29,12 @@ class EmptyErrorTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
+        verifyNoMoreInteractions(loader, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
-
-        assertEquals(ViewState.EmptyListErrorViewState<Any>(throwable), target.invoke(loader, collector, cacheDataObserver))
-
+        target.invoke(loader, cacheDataObserver)
     }
 
     @Test

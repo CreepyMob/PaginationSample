@@ -19,15 +19,17 @@ class PaginationController<T>(
 
         fun <T> default(): PaginationController<T> {
             val schedulersProvider = SchedulersProviderImpl()
-            val stateInvoker = StateInvoker<T>()
-            val stateStore = StateStore<T>()
             val contentCollector = ContentCollector<T>()
-            val pageContentLoader = PageContentLoader<T>(contentCollector, schedulersProvider)
+            val viewStateFactory = ViewStateFactory(contentCollector)
+            val stateInvoker = StateInvoker(viewStateFactory)
+            val stateStore = StateStore<T>()
+
+            val pageContentLoader = PageContentLoader(contentCollector, schedulersProvider)
             val cacheDataObserver = CacheDataObserver(contentCollector)
 
-            val stateApplier = StateApplier<T>(pageContentLoader, stateStore, contentCollector, cacheDataObserver, stateInvoker)
+            val stateApplier = StateApplier(pageContentLoader, stateStore, cacheDataObserver, stateInvoker)
 
-            val stateMachine = PaginationStateMachine<T>(stateStore, stateApplier)
+            val stateMachine = PaginationStateMachine(stateStore, stateApplier)
 
 
             return PaginationController(stateInvoker, stateMachine, pageContentLoader, cacheDataObserver)

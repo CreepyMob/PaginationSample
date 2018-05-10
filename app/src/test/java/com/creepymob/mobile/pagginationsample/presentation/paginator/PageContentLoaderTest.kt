@@ -45,15 +45,9 @@ class PageContentLoaderTest {
     @Test
     fun `loadFirstPage when request failed`() {
         val throwable = RuntimeException()
-        whenever(counter.currentPage).thenReturn(0)
         whenever(request(0)).thenReturn(Single.error(throwable))
 
         target.loadFirstPage()
-
-        inOrder(counter).apply {
-            verify(counter).reset()
-            verify(counter).currentPage
-        }
 
         inOrder(schedulersProvider).apply {
             verify(schedulersProvider).io()
@@ -75,7 +69,6 @@ class PageContentLoaderTest {
         val isNewContentEmpty = true
         val newContent = mock<Collection<Any>>()
         whenever(newContent.isEmpty()).thenReturn(isNewContentEmpty)
-        whenever(counter.currentPage).thenReturn(0)
         whenever(request(0)).thenReturn(Single.just(newContent))
         whenever(waitUntilCollectorReceiveNewContent.invoke(newContent, collector)).thenReturn(Single.just(newContent))
 
@@ -88,12 +81,7 @@ class PageContentLoaderTest {
             verify(schedulersProvider).main()
         }
 
-        inOrder(counter).apply {
-            verify(counter).reset()
-            verify(counter).currentPage
-            verify(counter).increment()
-        }
-
+        verify(counter).incrementAndSet(0)
 
         inOrder(disposable, request).apply {
             verify(disposable).clear()
@@ -139,8 +127,6 @@ class PageContentLoaderTest {
 
         target.loadNextPage()
 
-        // verify(contentPairMapper).apply(newContent)
-
         verify(waitUntilCollectorReceiveNewContent).invoke(newContent, collector)
 
 
@@ -151,7 +137,7 @@ class PageContentLoaderTest {
 
         inOrder(counter).apply {
             verify(counter).currentPage
-            verify(counter).increment()
+            verify(counter).incrementAndSet(0)
         }
 
         inOrder(disposable, request).apply {

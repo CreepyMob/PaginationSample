@@ -32,14 +32,15 @@ class DataRepositoryImpl : DataRepository {
                                     addAll(it)
                                 }
                             }
-
                             addAll(it)
                         }
                     }
                     .map { it.toList() }
-                    .doOnSuccess { subject.onNext(it) }
+                    .doOnSuccess {
+                        subject.onNext(it)
+                    }
 
-    private var counter = 0;
+    private var counter = 0
 
     private fun generateDefault(): List<LoadItem> {
 

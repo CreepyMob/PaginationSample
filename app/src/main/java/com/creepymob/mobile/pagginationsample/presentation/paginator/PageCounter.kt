@@ -15,7 +15,7 @@ class PageCounter(defaultPage: Int = 0) {
         currentPage = 0
     }
 
-    fun increment() {
-        currentPage++
+    fun incrementAndSet(page: Int) {
+        currentPage = page + 1
     }
 }

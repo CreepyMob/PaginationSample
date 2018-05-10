@@ -6,7 +6,9 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
  * Time: 22:58
  *
  */
-class ViewStateFactory<T>(private val contentStore: ContentStore<T>) {
+class ViewStateFactory<T>(private val contentStore: ContentStore<T>,
+                          private val viewStateCachedDataFactory: CachedDataViewStateFactoryDelegate<T> = CachedDataViewStateFactoryDelegate(contentStore),
+                          private val refreshViewStateFactoryDelegate: RefreshViewStateFactoryDelegate<T> = RefreshViewStateFactoryDelegate(contentStore)) {
 
     fun create(state: State<T>): ViewState<T>? = when (state) {
         is InitialState<T> -> null
@@ -14,18 +16,62 @@ class ViewStateFactory<T>(private val contentStore: ContentStore<T>) {
         is RestartProgress<T> -> ViewState.EmptyLoadingViewState()
         is EmptyError<T> -> ViewState.EmptyListErrorViewState(state.error)
         is EmptyData<T> -> ViewState.EmptyContentViewState()
-        is CachedData<T> -> ViewState.ContentViewState(contentStore.content,
-                isPassiveProgress = state.passiveProgress,
-                contentThrowable = state.contentThrowable)
-        is Data<T> -> ViewState.ContentViewState(contentStore.content,
-                contentThrowable = state.contentThrowable)
-        is Refresh<T> -> create(state.previousState)
+        is CachedData<T> -> {
+            viewStateCachedDataFactory.create(state)
+            /*val contentThrowable = when {
+                state.cachedThrowable == null -> null
+                state.cachedThrowable.from == Refresh::class -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
+                else -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
+            }
+
+            ViewState.ContentViewState(contentStore.content,
+                    isPassiveProgress = state.passiveProgress,
+                    contentThrowable = contentThrowable)*/
+        }
+        is Data<T> -> {
+            ViewState.ContentViewState(contentStore.content,
+                    contentThrowable = state.throwable?.let { ContentThrowable(state.throwable, whenRefresh = true) })
+        }
+        is Refresh<T> -> {
+            refreshViewStateFactoryDelegate.create(state)
+            /*  when (state.previousState) {
+                  is EmptyError -> ViewState.EmptyListErrorViewState(state.previousState.error, true)
+                  is EmptyData -> ViewState.EmptyContentViewState(true)
+                  is CachedData -> ViewState.ContentViewState(contentStore.content, isPassiveProgress = true)
+                  else -> ViewState.ContentViewState(contentStore.content, isRefresh = true)
+              }*/
+        }
         is PageProgress<T> -> ViewState.ContentViewState(contentStore.content, isNextPageLoaded = true)
         is PageProgressFail<T> -> ViewState.ContentViewState(contentStore.content,
                 contentThrowable = ContentThrowable(state.throwable, whenNextPageLoaded = true))
         is AllData<T> -> ViewState.ContentViewState(contentStore.content,
                 contentThrowable = state.throwable?.let { ContentThrowable(it, whenRefresh = true) })
         is Released<T> -> null
-        else -> null //DEBUG throw RuntimeException("unknown state")
+        else -> throw RuntimeException("unknown state")
+    }
+}
+
+class CachedDataViewStateFactoryDelegate<T>(private val contentStore: ContentStore<T>) {
+
+    fun create(state: CachedData<T>): ViewState<T> {
+        val contentThrowable = when {
+            state.cachedThrowable == null -> null
+            state.cachedThrowable.from == Refresh::class -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
+            else -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
+        }
+
+        return ViewState.ContentViewState(contentStore.content,
+                isPassiveProgress = state.passiveProgress,
+                contentThrowable = contentThrowable)
+    }
+}
+
+class RefreshViewStateFactoryDelegate<T>(private val contentStore: ContentStore<T>) {
+
+    fun create(state: Refresh<T>): ViewState<T> = when (state.previousState) {
+        is EmptyError -> ViewState.EmptyListErrorViewState(state.previousState.error, true)
+        is EmptyData -> ViewState.EmptyContentViewState(true)
+        is CachedData -> ViewState.ContentViewState(contentStore.content, isPassiveProgress = true)
+        else -> ViewState.ContentViewState(contentStore.content, isRefresh = true)
     }
 }

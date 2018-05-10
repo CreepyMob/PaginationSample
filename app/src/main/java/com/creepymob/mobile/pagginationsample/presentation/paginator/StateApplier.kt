@@ -9,7 +9,6 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 class StateApplier<T>(
         private val loader: PageContentLoader<T>,
         private val stateStore: StateStore<T>,
-        private val contentStore: ContentStore<T>,
         private val cacheDataObserver: CacheDataObserver<T>,
         private val stateInvoker: StateInvoker<T>) {
 
@@ -17,7 +16,7 @@ class StateApplier<T>(
     fun apply(newState: State<T>) {
         val previousState = stateStore.state
         stateStore.state = newState
-        stateInvoker(previousState, newState, loader, contentStore, cacheDataObserver)
+        stateInvoker(previousState, newState, loader, cacheDataObserver)
     }
 
 }

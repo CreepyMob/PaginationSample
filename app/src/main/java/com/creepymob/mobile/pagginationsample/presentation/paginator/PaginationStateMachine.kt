@@ -3,7 +3,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
-class StateInvoker<T> {
+class StateInvoker<T>(private val viewSateFactory: ViewStateFactory<T>) {
 
     private val viewStateSubject: PublishSubject<ViewState<T>> = PublishSubject.create()
 
@@ -12,16 +12,18 @@ class StateInvoker<T> {
     operator fun invoke(previousState: State<T>,
                         newState: State<T>,
                         loader: PageContentLoader<T>,
-                        contentStore: ContentStore<T>,
                         cacheDataObserver: CacheDataObserver<T>) {
-        System.out.println("StateInvoker previousState: ${previousState::class.simpleName}, " +
-                "newState: ${newState::class.simpleName} " +
-                "is equals: ${previousState == newState}")
+        System.out.println("StateInvoker previous: ${previousState::class.simpleName}, " +
+                "cur: ${newState::class.simpleName} " +
+                "is not same: ${previousState !== newState}")
         if (previousState !== newState) {
-            newState.invoke(loader, contentStore, cacheDataObserver)?.also {
-                System.out.println("StateInvoker viewState: ${it::class.simpleName}")
+
+            viewSateFactory.create(newState)?.also {
+                System.out.println("ViewSateFactory create viewState: ${it::class.simpleName}")
                 viewStateSubject.onNext(it)
             }
+
+            newState.invoke(loader, cacheDataObserver)
         }
     }
 }

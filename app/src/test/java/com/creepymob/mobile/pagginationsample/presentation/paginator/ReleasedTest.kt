@@ -2,7 +2,6 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -20,7 +19,6 @@ class ReleasedTest {
 
     private lateinit var target: Released<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
-    @Mock private lateinit var collector: ContentCollector<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
@@ -30,14 +28,12 @@ class ReleasedTest {
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
+        verifyNoMoreInteractions(loader, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
-
-        assertEquals(null, target.invoke(loader, collector, cacheDataObserver))
-
+        target.invoke(loader, cacheDataObserver)
         verify(loader).release()
         verify(cacheDataObserver).release()
     }

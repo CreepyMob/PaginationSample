@@ -54,8 +54,8 @@ class PageContentLoader<T>(
     }
 
     fun loadFirstPage() {
-        pageCounter.reset()
-        loadPage(pageCounter.currentPage)
+        //pageCounter.reset()
+        loadPage(0)
     }
 
     fun loadNextPage() {
@@ -72,7 +72,7 @@ class PageContentLoader<T>(
                 .subscribeOn(schedulersProvider.io())
                 .observeOn(schedulersProvider.main())
                 .subscribe({
-                    pageCounter.increment()
+                    pageCounter.incrementAndSet(page)
                     stateMachine.newPage(it.isEmpty())
                 }, {
                     stateMachine.fail(it)

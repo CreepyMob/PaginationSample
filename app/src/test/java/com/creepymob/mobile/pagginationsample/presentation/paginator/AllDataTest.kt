@@ -1,8 +1,6 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
-import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.whenever
 import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
@@ -21,26 +19,22 @@ class AllDataTest {
 
     private lateinit var target: AllData<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
-    @Mock private lateinit var collector: ContentCollector<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
-    @Mock private lateinit var content: Collection<Any>
 
     @Before
     fun setUp() {
         target = AllData()
-        whenever(collector.content).thenReturn(content)
+
     }
 
     @After
     fun tearDown() {
-        verifyNoMoreInteractions(loader, collector, cacheDataObserver)
+        verifyNoMoreInteractions(loader, cacheDataObserver)
     }
 
     @Test
     operator fun invoke() {
-        assertEquals(ViewState.ContentViewState(content), target.invoke(loader, collector, cacheDataObserver))
-
-        verify(collector).content
+        target.invoke(loader, cacheDataObserver)
     }
 
     @Test
