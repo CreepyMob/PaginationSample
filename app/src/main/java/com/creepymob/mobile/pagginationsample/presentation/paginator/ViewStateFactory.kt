@@ -6,6 +6,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
  * Time: 22:58
  *
  */
+//TODO test for
 class ViewStateFactory<T>(private val contentStore: ContentStore<T>,
                           private val viewStateCachedDataFactory: CachedDataViewStateFactoryDelegate<T> = CachedDataViewStateFactoryDelegate(contentStore),
                           private val refreshViewStateFactoryDelegate: RefreshViewStateFactoryDelegate<T> = RefreshViewStateFactoryDelegate(contentStore)) {
@@ -18,15 +19,6 @@ class ViewStateFactory<T>(private val contentStore: ContentStore<T>,
         is EmptyData<T> -> ViewState.EmptyContentViewState()
         is CachedData<T> -> {
             viewStateCachedDataFactory.create(state)
-            /*val contentThrowable = when {
-                state.cachedThrowable == null -> null
-                state.cachedThrowable.from == Refresh::class -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
-                else -> ContentThrowable(state.cachedThrowable.throwable, whenRefresh = true)
-            }
-
-            ViewState.ContentViewState(contentStore.content,
-                    isPassiveProgress = state.passiveProgress,
-                    contentThrowable = contentThrowable)*/
         }
         is Data<T> -> {
             ViewState.ContentViewState(contentStore.content,
@@ -34,12 +26,6 @@ class ViewStateFactory<T>(private val contentStore: ContentStore<T>,
         }
         is Refresh<T> -> {
             refreshViewStateFactoryDelegate.create(state)
-            /*  when (state.previousState) {
-                  is EmptyError -> ViewState.EmptyListErrorViewState(state.previousState.error, true)
-                  is EmptyData -> ViewState.EmptyContentViewState(true)
-                  is CachedData -> ViewState.ContentViewState(contentStore.content, isPassiveProgress = true)
-                  else -> ViewState.ContentViewState(contentStore.content, isRefresh = true)
-              }*/
         }
         is PageProgress<T> -> ViewState.ContentViewState(contentStore.content, isNextPageLoaded = true)
         is PageProgressFail<T> -> ViewState.ContentViewState(contentStore.content,
