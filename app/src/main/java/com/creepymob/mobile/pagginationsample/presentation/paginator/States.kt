@@ -114,7 +114,7 @@ class EmptyData<T> : State<T> {
 
     override fun restart() = RestartProgress<T>()
 
-    override fun refresh() = Refresh<T>(this)
+    override fun refresh() = Refresh(this)
 
     override fun release() = Released<T>()
 
@@ -152,7 +152,7 @@ data class CachedData<T>(val passiveProgress: Boolean,
 
     override fun restart() = RestartProgress<T>()
 
-    override fun refresh() = Refresh<T>(this)
+    override fun refresh() = Refresh(this)
 
     override fun release() = Released<T>()
 
@@ -229,7 +229,7 @@ class PageProgress<T> : State<T> {
         Data()
     }
 
-    override fun refresh() = Refresh<T>(this)
+    override fun refresh() = Refresh(this)
 
     override fun fail(error: Throwable) = PageProgressFail<T>(error)
 
@@ -255,7 +255,7 @@ data class PageProgressFail<T>(val throwable: Throwable) : State<T> {
 
     override fun restart() = RestartProgress<T>()
 
-    override fun refresh() = Refresh<T>(this)
+    override fun refresh() = Refresh(this)
 
     override fun release() = Released<T>()
 }
@@ -274,7 +274,7 @@ data class AllData<T>(val throwable: Throwable? = null) : State<T> {
 
     override fun restart() = RestartProgress<T>()
 
-    override fun refresh() = Refresh<T>(this)
+    override fun refresh() = Refresh(this)
 
     override fun release() = Released<T>()
 
@@ -293,4 +293,4 @@ class Released<T> : State<T> {
     override fun hashCode(): Int = javaClass.hashCode()
 }
 
-class StateThrowable<T>(throwable: Throwable, from: State<T>)
+class StateThrowable<T>(throwable: Throwable, from: Class<State<T>>)
