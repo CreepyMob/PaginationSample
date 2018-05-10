@@ -54,7 +54,6 @@ class InitialProgressTest {
         assertEquals(Data<Any>(), target.newPage(false))
     }
 
-
     @Test
     fun `updateCache with emptyCache true`() {
         assertEquals(target, target.updateCache(true))
@@ -64,7 +63,6 @@ class InitialProgressTest {
     fun `updateCache with emptyCache false`() {
         assertEquals(CachedData<Any>(true), target.updateCache(false))
     }
-
 
     @Test
     fun fail() {

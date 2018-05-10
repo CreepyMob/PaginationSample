@@ -21,7 +21,6 @@ class StateStoreTest {
     private lateinit var target: StateStore<Any>
     @Mock private lateinit var defaultState: State<Any>
 
-
     @Before
     fun setUp() {
         target = StateStore(defaultState)

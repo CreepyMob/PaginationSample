@@ -27,7 +27,6 @@ class StateApplierTest {
 
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
-
     @Before
     fun setUp() {
         target = StateApplier(loader, stateStore, cacheDataObserver, invoker)

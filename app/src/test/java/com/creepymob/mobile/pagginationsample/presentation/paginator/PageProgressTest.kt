@@ -34,7 +34,6 @@ class PageProgressTest {
         verifyNoMoreInteractions(loader, cacheDataObserver)
     }
 
-
     @Test
     operator fun invoke() {
         target.invoke(loader, cacheDataObserver)

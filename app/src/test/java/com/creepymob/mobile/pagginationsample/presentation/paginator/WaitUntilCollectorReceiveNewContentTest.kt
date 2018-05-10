@@ -66,7 +66,6 @@ class WaitUntilCollectorReceiveNewContentTest {
                 .assertNoErrors()
     }
 
-
     @Test
     fun `invoke when not empty content receive and collector update with newContent after invoke`() {
 

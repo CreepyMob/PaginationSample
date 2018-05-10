@@ -17,7 +17,6 @@ import org.mockito.junit.MockitoJUnitRunner
 class PaginationStateMachineTest {
 
     private lateinit var target: PaginationStateMachine<Any>
-    //@Mock private lateinit var loader: PageContentLoader<Any>
     @Mock private lateinit var stateStore: StateStore<Any>
     @Mock private lateinit var stateApplier: StateApplier<Any>
     @Mock private lateinit var initialState: State<Any>

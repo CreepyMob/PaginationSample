@@ -60,7 +60,6 @@ class PageContentLoaderTest {
             verify(disposable).add(any())
         }
 
-
         verify(stateMachine).fail(throwable)
     }
 
