@@ -1,9 +1,9 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertSame
 import org.junit.After
 import org.junit.Before
@@ -14,19 +14,19 @@ import org.mockito.junit.MockitoJUnitRunner
 
 /**
  * User: andrey
- * Date: 30.04.2018
- * Time: 6:22
+ * Date: 12.05.2018
+ * Time: 1:52
  */
 @RunWith(MockitoJUnitRunner::class)
-class ReleasedTest {
+class PageProgressFailTest {
 
-    private lateinit var target: Released<Any>
+    private lateinit var target: PageProgressFail<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
-
+    @Mock private lateinit var throwable: Throwable
     @Before
     fun setUp() {
-        target = Released()
+        target = PageProgressFail(throwable)
     }
 
     @After
@@ -37,23 +37,23 @@ class ReleasedTest {
     @Test
     operator fun invoke() {
         target.invoke(loader, cacheDataObserver)
-        verify(loader).release()
-        verify(cacheDataObserver).release()
+        verifyZeroInteractions(loader)
+        verifyZeroInteractions(cacheDataObserver)
     }
 
     @Test
     fun restart() {
-        assertSame(target, target.restart())
+        assertEquals(RestartProgress<Any>(), target.restart())
     }
 
     @Test
     fun refresh() {
-        assertSame(target, target.refresh())
+        assertEquals(Refresh(target), target.refresh())
     }
 
     @Test
     fun retry() {
-        assertSame(target, target.retry())
+        assertEquals(PageProgress<Any>(), target.retry())
     }
 
     @Test
@@ -63,26 +63,26 @@ class ReleasedTest {
 
     @Test
     fun release() {
-        assertSame(target, target.release())
+        assertEquals(Released<Any>(), target.release())
     }
 
     @Test
-    fun `updateCache emptyCache = true`() {
+    fun `updateCache when emptyCache = true`() {
         assertSame(target, target.updateCache(true))
     }
 
     @Test
-    fun `updateCache emptyCache = false`() {
+    fun `updateCache when emptyCache = false`() {
         assertSame(target, target.updateCache(false))
     }
 
     @Test
-    fun `newPage pageEmpty = true`() {
+    fun `newPage when pageEmpty = true`() {
         assertSame(target, target.newPage(true))
     }
 
     @Test
-    fun `newPage pageEmpty = false`() {
+    fun `newPage when pageEmpty = false`() {
         assertSame(target, target.newPage(true))
     }
 

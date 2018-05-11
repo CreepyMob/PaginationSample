@@ -28,21 +28,11 @@ class StateInvoker<T>(private val viewSateFactory: ViewStateFactory<T>) {
     }
 }
 
-class StateStore<T>(var state: State<T> = InitialState<T>())
+class StateStore<T>(var state: State<T> = InitialState())
 
-class PaginationStateMachine<T>(/*private val stateInvoker: StateInvoker<T> = StateInvoker(),
-                                private val pageContentLoader: PageContentLoader<T> = PageContentLoader(),*/
+class PaginationStateMachine<T>(
         private val stateStore: StateStore<T>,
         private val stateApplier: StateApplier<T>) {
-
-    /*  val viewStateObservable: Observable<ViewState<T>>
-          get() = stateInvoker.viewStateObservable
-
-
-      fun init(request: (Int) -> Single<out Collection<T>>) {
-          pageContentLoader.init(request, this)
-          stateApplier.apply(stateStore.state)
-      }*/
 
     fun restart() {
         stateApplier.apply(stateStore.state.restart())
@@ -75,6 +65,5 @@ class PaginationStateMachine<T>(/*private val stateInvoker: StateInvoker<T> = St
     fun release() {
         stateApplier.apply(stateStore.state.release())
     }
-
 
 }

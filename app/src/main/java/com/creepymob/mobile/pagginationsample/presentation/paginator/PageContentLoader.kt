@@ -21,7 +21,7 @@ class WaitUntilCollectorReceiveNewContent<T>(private val schedulersProvider: Sch
                 collector.contentObservable
                         .observeOn(schedulersProvider.io())
                         .doOnNext {
-                          //  System.out.println("SUBJECT isMain Thread: ${Looper.myLooper() == Looper.getMainLooper()}")
+                            //  System.out.println("SUBJECT isMain Thread: ${Looper.myLooper() == Looper.getMainLooper()}")
                         }
                         .filter { it.containsAll(content) }
                         .firstOrError()
@@ -49,12 +49,11 @@ class PageContentLoader<T>(
     private lateinit var stateMachine: PaginationStateMachine<T>
 
     fun init(request: (Int) -> Single<out Collection<T>>, stateMachine: PaginationStateMachine<T>) {
-        this.request = request;
-        this.stateMachine = stateMachine;
+        this.request = request
+        this.stateMachine = stateMachine
     }
 
     fun loadFirstPage() {
-        //pageCounter.reset()
         loadPage(0)
     }
 

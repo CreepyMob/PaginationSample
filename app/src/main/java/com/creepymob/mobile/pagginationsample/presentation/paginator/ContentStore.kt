@@ -6,7 +6,7 @@ package com.creepymob.mobile.pagginationsample.presentation.paginator
  * Time: 23:02
  *
  */
-interface ContentStore<T> {
+interface ContentStore<out T> {
 
     val content: Collection<T>
 }

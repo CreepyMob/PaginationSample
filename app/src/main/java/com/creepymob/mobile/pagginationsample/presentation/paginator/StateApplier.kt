@@ -12,7 +12,6 @@ class StateApplier<T>(
         private val cacheDataObserver: CacheDataObserver<T>,
         private val stateInvoker: StateInvoker<T>) {
 
-
     fun apply(newState: State<T>) {
         val previousState = stateStore.state
         stateStore.state = newState

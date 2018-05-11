@@ -1,7 +1,9 @@
 package com.creepymob.mobile.pagginationsample.presentation.paginator
 
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import junit.framework.TestCase.assertEquals
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import junit.framework.TestCase.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +26,6 @@ class AllDataTest {
     @Before
     fun setUp() {
         target = AllData()
-
     }
 
     @After
@@ -48,8 +49,48 @@ class AllDataTest {
     }
 
     @Test
+    fun retry() {
+        assertSame(target, target.retry())
+    }
+
+    @Test
+    fun loadNewPage() {
+        assertSame(target, target.loadNewPage())
+    }
+
+    @Test
     fun release() {
         assertEquals(Released<Any>(), target.release())
+    }
+
+    @Test
+    fun `updateCache emptyCache = true`() {
+        assertEquals(EmptyData<Any>(), target.updateCache(true))
+    }
+
+    @Test
+    fun `updateCache emptyCache = false`() {
+        target.updateCache(false).also {
+            assertEquals(AllData<Any>(), it)
+            assertNotSame(target, it)
+        }
+    }
+
+    @Test
+    fun `newPage pageEmpty = true`() {
+        assertSame(target, target.newPage(true))
+    }
+
+    @Test
+    fun `newPage pageEmpty = false`() {
+        assertSame(target, target.newPage(true))
+    }
+
+    @Test
+    fun fail() {
+        val error = mock<Throwable>()
+        assertSame(target, target.fail(error))
+        verifyZeroInteractions(error)
     }
 
 }

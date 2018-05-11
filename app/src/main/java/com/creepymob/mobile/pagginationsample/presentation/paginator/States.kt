@@ -84,7 +84,6 @@ class RestartProgress<T> : State<T> {
 
     override fun hashCode(): Int = javaClass.hashCode()
 
-
 }
 
 data class EmptyError<T>(val error: Throwable) : State<T> {
@@ -114,20 +113,6 @@ class EmptyData<T> : State<T> {
 data class CachedData<T>(val passiveProgress: Boolean,
                          val cachedThrowable: CachedThrowable? = null) : State<T> {
 
-    /* override fun invoke(pageLoader: PageContentLoader<T>, contentStore: ContentStore<T>, cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
-
-         val contentThrowable = when {
-             cachedThrowable == null -> null
-             cachedThrowable.from == Refresh::class -> ContentThrowable(cachedThrowable.throwable, whenRefresh = true)
-             else -> ContentThrowable(cachedThrowable.throwable, whenRefresh = true)
-         }
-
-         return ViewState.ContentViewState(contentStore.content,
-                 isPassiveProgress = passiveProgress,
-                 contentThrowable = contentThrowable)
-     }*/
-
-
     override fun newPage(pageEmpty: Boolean): State<T> = if (pageEmpty) {
         EmptyData()
     } else {
@@ -154,12 +139,6 @@ data class CachedData<T>(val passiveProgress: Boolean,
 
 data class Data<T>(val throwable: Throwable? = null) : State<T> {
 
-    /*override fun invoke(pageLoader: PageContentLoader<T>, contentStore: ContentStore<T>, cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
-
-        return ViewState.ContentViewState(contentStore.content,
-                contentThrowable = throwable?.let { ContentThrowable(throwable, whenRefresh = true) })
-    }*/
-
     override fun updateCache(emptyCache: Boolean): State<T> = if (emptyCache) {
         EmptyData()
     } else {
@@ -177,16 +156,6 @@ data class Data<T>(val throwable: Throwable? = null) : State<T> {
 }
 
 data class Refresh<T> constructor(val previousState: State<T>) : State<T> {
-
-    /*override fun invoke(pageLoader: PageContentLoader<T>, contentStore: ContentStore<T>, cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
-        pageLoader.loadFirstPage()
-        return when (previousState) {
-            is EmptyError -> ViewState.EmptyListErrorViewState(previousState.error, true)
-            is EmptyData -> ViewState.EmptyContentViewState(true)
-            is CachedData -> ViewState.ContentViewState(contentStore.content, isPassiveProgress = true)
-            else -> ViewState.ContentViewState(contentStore.content, isRefresh = true)
-        }
-    }*/
 
     override fun invoke(pageLoader: PageContentLoader<T>, cacheDataObserver: CacheDataObserver<T>) {
         pageLoader.loadFirstPage()
@@ -216,7 +185,6 @@ class PageProgress<T> : State<T> {
 
     override fun invoke(pageLoader: PageContentLoader<T>, cacheDataObserver: CacheDataObserver<T>) {
         pageLoader.loadNextPage()
-        //return ViewState.ContentViewState(contentStore.content, isNextPageLoaded = true)
     }
 
     override fun restart() = RestartProgress<T>()
@@ -241,14 +209,6 @@ class PageProgress<T> : State<T> {
 
 data class PageProgressFail<T>(val throwable: Throwable) : State<T> {
 
-    /* override fun invoke(pageLoader: PageContentLoader<T>,
-                         contentStore: ContentStore<T>,
-                         cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
-
-         return ViewState.ContentViewState(contentStore.content,
-                 contentThrowable = ContentThrowable(throwable, whenNextPageLoaded = true))
-     }*/
-
     override fun retry(): State<T> = PageProgress()
 
     override fun restart() = RestartProgress<T>()
@@ -259,10 +219,6 @@ data class PageProgressFail<T>(val throwable: Throwable) : State<T> {
 }
 
 data class AllData<T>(val throwable: Throwable? = null) : State<T> {
-
-    /*override fun invoke(pageLoader: PageContentLoader<T>, contentStore: ContentStore<T>, cacheDataObserver: CacheDataObserver<T>): ViewState<T>? {
-        return ViewState.ContentViewState(contentStore.content, contentThrowable = throwable?.let { ContentThrowable(throwable, whenRefresh = true) })
-    }*/
 
     override fun updateCache(emptyCache: Boolean): State<T> = if (emptyCache) {
         EmptyData()
@@ -291,4 +247,4 @@ class Released<T> : State<T> {
     override fun hashCode(): Int = javaClass.hashCode()
 }
 
-class CachedThrowable(val throwable: Throwable, val from: KClass<out State<*>>)
+data class CachedThrowable(val throwable: Throwable, val from: KClass<out State<*>>)

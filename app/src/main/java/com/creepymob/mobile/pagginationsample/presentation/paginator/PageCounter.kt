@@ -11,10 +11,6 @@ class PageCounter(defaultPage: Int = 0) {
     var currentPage = defaultPage
         private set
 
-    fun reset() {
-        currentPage = 0
-    }
-
     fun incrementAndSet(page: Int) {
         currentPage = page + 1
     }

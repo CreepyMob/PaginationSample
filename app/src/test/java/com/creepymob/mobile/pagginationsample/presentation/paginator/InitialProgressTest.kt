@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertSame
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -45,35 +46,49 @@ class InitialProgressTest {
     }
 
     @Test
-    fun `newPage with pageEmpty true`() {
+    fun refresh() {
+        assertSame(target, target.refresh())
+    }
+
+    @Test
+    fun retry() {
+        assertSame(target, target.retry())
+    }
+
+    @Test
+    fun loadNewPage() {
+        assertSame(target, target.loadNewPage())
+    }
+
+    @Test
+    fun release() {
+        assertEquals(Released<Any>(), target.release())
+    }
+
+    @Test
+    fun `updateCache emptyCache = true`() {
+        assertSame(target, target.updateCache(true))
+    }
+
+    @Test
+    fun `updateCache emptyCache = false`() {
+        assertEquals(CachedData<Any>(true), target.updateCache(false))
+    }
+
+    @Test
+    fun `newPage pageEmpty = true`() {
         assertEquals(EmptyData<Any>(), target.newPage(true))
     }
 
     @Test
-    fun `newPage with pageEmpty false`() {
+    fun `newPage pageEmpty = false`() {
         assertEquals(Data<Any>(), target.newPage(false))
-    }
-
-    @Test
-    fun `updateCache with emptyCache true`() {
-        assertEquals(target, target.updateCache(true))
-    }
-
-    @Test
-    fun `updateCache with emptyCache false`() {
-        assertEquals(CachedData<Any>(true), target.updateCache(false))
     }
 
     @Test
     fun fail() {
         val throwable = mock<Throwable>()
         assertEquals(EmptyError<Any>(throwable), target.fail(throwable))
-    }
-
-    @Test
-    fun release() {
-
-        assertEquals(Released<Any>(), target.release())
     }
 
 }

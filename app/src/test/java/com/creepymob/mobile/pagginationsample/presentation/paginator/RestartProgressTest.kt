@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertSame
 import org.junit.After
 import org.junit.Before
@@ -14,19 +15,19 @@ import org.mockito.junit.MockitoJUnitRunner
 
 /**
  * User: andrey
- * Date: 30.04.2018
- * Time: 6:22
+ * Date: 12.05.2018
+ * Time: 1:35
  */
 @RunWith(MockitoJUnitRunner::class)
-class ReleasedTest {
+class RestartProgressTest {
 
-    private lateinit var target: Released<Any>
+    private lateinit var target: RestartProgress<Any>
     @Mock private lateinit var loader: PageContentLoader<Any>
     @Mock private lateinit var cacheDataObserver: CacheDataObserver<Any>
 
     @Before
     fun setUp() {
-        target = Released()
+        target = RestartProgress()
     }
 
     @After
@@ -37,13 +38,13 @@ class ReleasedTest {
     @Test
     operator fun invoke() {
         target.invoke(loader, cacheDataObserver)
-        verify(loader).release()
-        verify(cacheDataObserver).release()
+        verify(loader).loadFirstPage()
+        verifyZeroInteractions(cacheDataObserver)
     }
 
     @Test
     fun restart() {
-        assertSame(target, target.restart())
+        assertEquals(RestartProgress<Any>(), target.restart())
     }
 
     @Test
@@ -63,34 +64,33 @@ class ReleasedTest {
 
     @Test
     fun release() {
-        assertSame(target, target.release())
+        assertEquals(Released<Any>(), target.release())
     }
 
     @Test
-    fun `updateCache emptyCache = true`() {
+    fun `updateCache with emptyCache true`() {
         assertSame(target, target.updateCache(true))
     }
 
     @Test
-    fun `updateCache emptyCache = false`() {
-        assertSame(target, target.updateCache(false))
+    fun `updateCache with emptyCache false`() {
+        assertEquals(target, target.updateCache(false))
     }
 
     @Test
-    fun `newPage pageEmpty = true`() {
-        assertSame(target, target.newPage(true))
+    fun `newPage with pageEmpty true`() {
+        assertEquals(EmptyData<Any>(), target.newPage(true))
     }
 
     @Test
-    fun `newPage pageEmpty = false`() {
-        assertSame(target, target.newPage(true))
+    fun `newPage with pageEmpty false`() {
+        assertEquals(Data<Any>(), target.newPage(false))
     }
 
     @Test
     fun fail() {
-        val error = mock<Throwable>()
-        assertSame(target, target.fail(error))
-        verifyZeroInteractions(error)
+        val throwable = mock<Throwable>()
+        assertEquals(EmptyError<Any>(throwable), target.fail(throwable))
     }
 
 }
