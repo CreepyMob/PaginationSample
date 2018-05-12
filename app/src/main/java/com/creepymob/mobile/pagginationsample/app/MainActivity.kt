@@ -13,7 +13,7 @@ import com.creepymob.mobile.pagginationsample.app.data.NewPageProgressLoader
 import com.creepymob.mobile.pagginationsample.data.DataRepositoryImpl
 import com.creepymob.mobile.pagginationsample.entity.DataLoadFilter
 import com.creepymob.mobile.pagginationsample.entity.LoadItem
-import com.creepymob.mobile.pagginationsample.presentation.ExamplePresenter
+import com.creepymob.mobile.pagginationsample.presentation.ExampleSimpleListPresenter
 import com.creepymob.mobile.pagginationsample.presentation.paginator.PaginationController
 import com.creepymob.mobile.pagginationsample.presentation.paginator.ViewState
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
@@ -27,7 +27,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
 
-    private lateinit var presenter: ExamplePresenter
+    private lateinit var presenter: ExampleSimpleListPresenter
     private lateinit var adapter: MainAdapter
     private val reloadPageSubject: PublishSubject<Unit> = PublishSubject.create()
     private val onLoadItemClickSubject: PublishSubject<LoadItem> = PublishSubject.create()
@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
-        presenter = ExamplePresenter(initialFilter,
+        presenter = ExampleSimpleListPresenter(initialFilter,
                 PaginationController.default(),
                 DataRepositoryImpl(),
                 SchedulersProviderImpl(),

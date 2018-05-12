@@ -15,11 +15,11 @@ import io.reactivex.rxkotlin.subscribeBy
  * Date: 28.04.2018
  * Time: 0:08
  */
-class ExamplePresenter(private val filter: DataLoadFilter,
-                       private val paginationController: PaginationController<LoadItem>,
-                       private val repository: DataRepository,
-                       private val schedulersProvider: SchedulersProvider,
-                       private val disposable: CompositeDisposable
+class ExampleSimpleListPresenter(private val filter: DataLoadFilter,
+                                 private val paginationController: PaginationController<LoadItem>,
+                                 private val repository: DataRepository,
+                                 private val schedulersProvider: SchedulersProvider,
+                                 private val disposable: CompositeDisposable
 ) {
 
 
@@ -66,7 +66,7 @@ class ExamplePresenter(private val filter: DataLoadFilter,
         paginationController.init( repository.observable,
                 { page: Int -> repository.update(filter, page) })
 
-        paginationController.refresh()
+        paginationController.restart()
 
     }
 }

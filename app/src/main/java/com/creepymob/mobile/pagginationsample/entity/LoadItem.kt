@@ -8,4 +8,4 @@ import com.creepymob.mobile.pagginationsample.app.data.DisplayableItem
  * Time: 0:12
  *
  */
-data class LoadItem(val title: String, val message: String) : DisplayableItem
+data class LoadItem(val id: Long, val title: String, val message: String) : DisplayableItem
