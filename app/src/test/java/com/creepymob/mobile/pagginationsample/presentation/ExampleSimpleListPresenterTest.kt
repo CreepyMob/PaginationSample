@@ -8,6 +8,7 @@ import com.creepymob.mobile.pagginationsample.entity.LoadItem
 import com.creepymob.mobile.pagginationsample.presentation.paginator.PaginationController
 import com.creepymob.mobile.pagginationsample.presentation.paginator.ViewState
 import com.nhaarman.mockito_kotlin.*
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import org.junit.Before
@@ -105,9 +106,20 @@ class ExampleSimpleListPresenterTest {
     @Test
     fun `when call init, init and restart paginationController`() {
         target.init()
-
         verify(paginationController).init(eq(repository.observable), any())
         verify(paginationController).restart()
+    }
+
+    @Test
+    fun `when paginationController loadLambda invoke call repository update`() {
+        target.init()
+
+        val captor = argumentCaptor<(Int) -> Single<out Collection<LoadItem>>>()
+        verify(paginationController).init(eq(repository.observable), captor.capture())
+
+        captor.firstValue.invoke(0)
+
+        verify(repository).update(filter, 0)
     }
 
     @Test

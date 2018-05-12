@@ -49,7 +49,7 @@ class DataRepositoryImpl : DataRepository {
         val list = mutableListOf<LoadItem>()
 
         for (i in 0 until 1000) {
-            list.add(LoadItem("CACHED ITEM $i", "message $i"))
+            list.add(LoadItem(i.toLong(), "CACHED ITEM $i", "message $i"))
         }
 
         return list
@@ -69,7 +69,7 @@ class DataRepositoryImpl : DataRepository {
             else -> {
                 val size = 20
                 for (i in 0 until size) {
-                    list.add(LoadItem("title ${size * page + i}", "message ${size * page + i}"))
+                    list.add(LoadItem(i.toLong(), "title ${size * page + i}", "message ${size * page + i}"))
                 }
             }
         }
