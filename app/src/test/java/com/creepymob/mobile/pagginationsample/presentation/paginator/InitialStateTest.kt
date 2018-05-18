@@ -42,7 +42,7 @@ class InitialStateTest {
 
     @Test
     fun restart() {
-        assertSame(target, target.restart())
+        assertEquals(InitialProgress<Any>(), target.restart())
     }
 
     @Test

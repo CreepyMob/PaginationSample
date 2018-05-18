@@ -14,6 +14,7 @@ import com.creepymob.mobile.pagginationsample.data.DataRepositoryImpl
 import com.creepymob.mobile.pagginationsample.entity.DataLoadFilter
 import com.creepymob.mobile.pagginationsample.entity.LoadItem
 import com.creepymob.mobile.pagginationsample.presentation.ExampleSimpleListPresenter
+import com.creepymob.mobile.pagginationsample.presentation.paginator.MviPaginationController
 import com.creepymob.mobile.pagginationsample.presentation.paginator.PaginationController
 import com.creepymob.mobile.pagginationsample.presentation.paginator.ViewState
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
@@ -55,7 +56,7 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
         presenter = ExampleSimpleListPresenter(initialFilter,
-                PaginationController.default(),
+                MviPaginationController(PaginationController.default()),
                 DataRepositoryImpl(),
                 SchedulersProviderImpl(),
                 CompositeDisposable())
