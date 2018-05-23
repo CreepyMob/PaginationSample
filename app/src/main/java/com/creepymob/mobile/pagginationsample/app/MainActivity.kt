@@ -76,7 +76,10 @@ class MainActivity : AppCompatActivity(), RegularMviListView<LoadItem> {
     override val loadMoreEvent: Observable<Unit> by lazy {
         RxRecyclerView
                 .scrollEvents(recyclerView)
-                .filter { event -> !event.view().canScrollVertically(1) }
+                .filter { event ->
+                    val layoutManager = event.view().layoutManager as LinearLayoutManager
+                    layoutManager.findLastVisibleItemPosition() > adapter.itemCount - 10
+                }
                 .map { Unit }
                 .doOnNext { System.out.println("RecyclerView SCROLL DOWN") }
     }
